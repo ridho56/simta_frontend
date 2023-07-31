@@ -25,9 +25,11 @@ class BimbinganPage extends StatelessWidget {
             onPressed: () {
               Get.defaultDialog(
                 title: 'Alert',
-                middleText: 'Apkaha anda yakin untuk keluar?',
+                middleText: 'Apakah anda yakin untuk keluar?',
                 confirm: ElevatedButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () => Get.back(
+                    closeOverlays: true,
+                  ),
                   child: const Text('OK'),
                 ),
               );
@@ -36,10 +38,11 @@ class BimbinganPage extends StatelessWidget {
           title: const Text(
             "Pengajuan Jadwal Bimbingan",
             style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xff355070)),
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
           centerTitle: true,
         ),

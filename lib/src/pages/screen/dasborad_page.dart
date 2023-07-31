@@ -18,27 +18,6 @@ class DasboardPage extends StatefulWidget {
 }
 
 class _DasboardPageState extends State<DasboardPage> {
-  @override
-  void initState() {
-    super.initState();
-    loadList();
-    getUserData();
-  }
-
-  // String greetingMessage() {
-  //   var timeNow = DateTime.now().hour;
-
-  //   if (timeNow <= 12) {
-  //     return 'Selamat Pagi,';
-  //   } else if ((timeNow >= 12) && (timeNow <= 16)) {
-  //     return 'Selamat Siang,';
-  //   } else if ((timeNow >= 16) && (timeNow <= 20)) {
-  //     return 'Selamat Sore,';
-  //   } else {
-  //     return 'Selamat Malam,';
-  //   }
-  // }
-
   final keyRefresh = GlobalKey<RefreshIndicatorState>();
   final RiwayatController riwayatController = Get.find<RiwayatController>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -47,14 +26,16 @@ class _DasboardPageState extends State<DasboardPage> {
 
   Future loadList() async {
     keyRefresh.currentState?.show();
-    await Future.delayed(const Duration(milliseconds: 500));
-    riwayatController.getRiwayatBimbingan();
-    riwayatController.getRiwayatSempro();
-    riwayatController.getRiwayatSemhas();
-    riwayatController.getPengujiUjianProposal();
-    riwayatController.getriwayatujianta();
-    getImageUrlFromSharedPreferences();
-    getStringFromSharedPreferences();
+    // await Future.delayed(const Duration(milliseconds: 500));
+    await riwayatController.getDosen();
+    await riwayatController.getTimeLine();
+    await riwayatController.getRiwayatPengajuanJudul();
+    await riwayatController.getRiwayatBimbingan();
+    await riwayatController.getRiwayatSempro();
+    await riwayatController.getRiwayatSemhas();
+    await riwayatController.getriwayatujianta();
+    await riwayatController.getpersyaratan();
+    getUserData();
   }
 
   Future<void> getUserData() async {
@@ -157,9 +138,11 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Expanded(
                     child: ListView(
-                  physics: const BouncingScrollPhysics(),
-                  children: const [
-                    BodyPage(),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    BodyPage(
+                      loadlist: loadList,
+                    ),
                   ],
                 ))
               ],

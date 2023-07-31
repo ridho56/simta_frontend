@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../model/penguji_ujian_proposal_model.dart';
+import '../model/penguji_ujianta_model.dart';
 import '../theme/simta_color.dart';
 
 class Fieldditerima extends StatelessWidget {
-  String? judul;
-  String? tanggal;
-  String? jam;
-  String? statusAjuan;
-  String? ruangan;
-  List<dynamic>? pengujilist;
+  final String? judul;
+  final String? tanggal;
+  final String? jam;
+  final String? statusAjuan;
+  final String? ruangan;
+  final List<dynamic>? pengujilist;
 
-  Fieldditerima({
+  const Fieldditerima({
     Key? key,
     this.judul,
     this.tanggal,
@@ -146,39 +148,72 @@ class Fieldditerima extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: judul == 'Pengajuan Jadwal Ujian TA'
-                      ? 150
-                      : 100, // Atur tinggi ListView.builder sesuai kebutuhan
-                  child: ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: pengujilist?.length ?? 0,
-                    itemBuilder: (context, index) {
-                      String? penguji = pengujilist?[index];
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          children: [
-                            const CircleAvatar(
-                              radius: 20,
-                              backgroundColor: SimtaColor.grey,
-                              backgroundImage:
-                                  AssetImage('assets/jpg/user.png'),
-                            ),
-                            const SizedBox(width: 20),
-                            Text(
-                              penguji!,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                if (pengujilist!.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: const [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: SimtaColor.grey,
+                          backgroundImage: AssetImage('assets/jpg/user.png'),
                         ),
-                      );
-                    },
+                        SizedBox(width: 20),
+                        Text(
+                          "Data Not Found",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                if (visible && pengujilist != null && pengujilist!.isNotEmpty)
+                  SizedBox(
+                    height: judul == 'Pengajuan Jadwal Ujian TA'
+                        ? 150
+                        : 100, // Atur tinggi ListView.builder sesuai kebutuhan
+                    child: ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: pengujilist!.length,
+                      itemBuilder: (context, index) {
+                        final penguji = pengujilist![index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 20,
+                                backgroundColor: SimtaColor.grey,
+                                backgroundImage:
+                                    AssetImage('assets/jpg/user.png'),
+                              ),
+                              const SizedBox(width: 20),
+                              if (penguji is DataPengujiUjianProposal ||
+                                  penguji is DatapengujiUjianTa)
+                                Flexible(
+                                  child: Text(
+                                    penguji.namaPenguji,
+                                    style: const TextStyle(
+                                        color: SimtaColor.birubar,
+                                        fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
+                                )
+                              else if (penguji is String)
+                                Text(
+                                  penguji,
+                                  style: const TextStyle(
+                                    color: SimtaColor.birubar,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
         ],

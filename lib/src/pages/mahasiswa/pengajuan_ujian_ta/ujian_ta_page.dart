@@ -22,16 +22,26 @@ class UjianTa extends StatelessWidget {
               size: 20,
             ),
             onPressed: () {
-              Get.back();
+              Get.defaultDialog(
+                title: 'Alert',
+                middleText: 'Apakah anda yakin untuk keluar?',
+                confirm: ElevatedButton(
+                  onPressed: () => Get.back(
+                    closeOverlays: true,
+                  ),
+                  child: const Text('OK'),
+                ),
+              );
             },
           ),
           title: const Text(
             "Pengajuan Jadwal Ujian TA",
             style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xff355070)),
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
           centerTitle: true,
         ),

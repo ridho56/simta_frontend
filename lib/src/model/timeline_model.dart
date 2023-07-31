@@ -1,70 +1,62 @@
-class TimeLineModel {
-  String icon;
-  String judul;
-  String jadwal;
+// To parse this JSON data, do
+//
+//     final timeLine = timeLineFromJson(jsonString);
 
-  TimeLineModel(this.icon, this.judul, this.jadwal);
+import 'dart:convert';
+
+TimeLine timeLineFromJson(String str) => TimeLine.fromJson(json.decode(str));
+
+String timeLineToJson(TimeLine data) => json.encode(data.toJson());
+
+class TimeLine {
+  int code;
+  String status;
+  List<TimeLineData> data;
+
+  TimeLine({
+    required this.code,
+    required this.status,
+    required this.data,
+  });
+
+  factory TimeLine.fromJson(Map<String, dynamic> json) => TimeLine(
+        code: json["code"],
+        status: json["status"],
+        data: List<TimeLineData>.from(
+            json["data"].map((x) => TimeLineData.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "code": code,
+        "status": status,
+        "data": List<dynamic>.from(data.map((x) => x.toJson())),
+      };
 }
 
-List<TimeLineModel> time = [
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Judul Tugas Akhir",
-    "20 -25 Februari 2023",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Bimbingan Proposal",
-    "25 - 30 Februari 2023",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Seminar Proposal",
-    "30 Februari - 05 Maret 2023",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Seminar Hasil",
-    "08 Juni 2023",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pameran Produk",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-  TimeLineModel(
-    'assets/svg/timer.svg',
-    "Pengajuan Ujian TA",
-    "-",
-  ),
-];
+class TimeLineData {
+  int id;
+  String namaKegiatan;
+  String tanggalMulai;
+  String tanggalSelesai;
+
+  TimeLineData({
+    required this.id,
+    required this.namaKegiatan,
+    required this.tanggalMulai,
+    required this.tanggalSelesai,
+  });
+
+  factory TimeLineData.fromJson(Map<String, dynamic> json) => TimeLineData(
+        id: json["id"],
+        namaKegiatan: json["nama_kegiatan"],
+        tanggalMulai: json["tanggal_mulai"],
+        tanggalSelesai: json["tanggal_selesai"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "nama_kegiatan": namaKegiatan,
+        "tanggal_mulai": tanggalMulai,
+        "tanggal_selesai": tanggalSelesai,
+      };
+}

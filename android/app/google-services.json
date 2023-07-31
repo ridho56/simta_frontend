@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "512630140191",
-    "project_id": "simta-profile",
-    "storage_bucket": "simta-profile.appspot.com"
+    "project_number": "937068646335",
+    "project_id": "simta-ava",
+    "storage_bucket": "simta-ava.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:512630140191:android:e5ae67733f4ecf50ec542a",
+        "mobilesdk_app_id": "1:937068646335:android:b24eec8a98cb6990aedb0a",
         "android_client_info": {
-          "package_name": "com.example.simta1"
+          "package_name": "simta.mobile"
         }
       },
       "oauth_client": [
         {
-          "client_id": "512630140191-giojfsdq41ltv0mdqfkv0vev9eddttns.apps.googleusercontent.com",
+          "client_id": "937068646335-2e6gvd0nho9sbm1ggsbhr95lutir55k7.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBSIyg9leojFdDAY6ENh48RGPTVmPOeb-w"
+          "current_key": "AIzaSyBGz_YIFY1gmhr7inyubB1an4rgc98a2Eo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "512630140191-giojfsdq41ltv0mdqfkv0vev9eddttns.apps.googleusercontent.com",
+              "client_id": "937068646335-2e6gvd0nho9sbm1ggsbhr95lutir55k7.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

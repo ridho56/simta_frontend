@@ -87,10 +87,6 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget getBody() {
     List<Widget> pages = [
       const DasboardPage(),
-      // GetBuilder<RiwayatController>(
-      //   init: RiwayatController(),
-      //   builder: (controller) => const DasboardPage(),
-      // ),
       const ProfilePage(),
     ];
     return IndexedStack(

@@ -5,31 +5,200 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import '../helper/conecttion.dart';
+import '../helper/exception_handler.dart';
+import '../model/dosen.dart';
 import '../model/penguji_ujian_proposal_model.dart';
 import '../model/penguji_ujianta_model.dart';
+import '../model/persyaratan_lulus.dart';
+import '../model/rekom_dospem.dart';
 import '../model/riwayat_bimbingan_model.dart';
+import '../model/riwayat_judul_model.dart';
 import '../model/riwayat_semhas_model.dart';
 import '../model/riwayat_sempro_model.dart';
 import '../model/riwayat_ujianta_model.dart';
+import '../model/timeline_model.dart';
 
 class RiwayatController extends GetxController {
   final riwayatBimbinganList = <DataRiwayatBim>[].obs;
   final riwayatSemproList = <RiwayatSemproData>[].obs;
   final riwayatSemhasList = <RiwayatSemhasData>[].obs;
   final riwayatUjianTaList = <RiwayatUjianTaData>[].obs;
-  final pengujiUjianProposalList = <DataPengujiUjianProposal>[].obs;
-  final pengujiUjianTalList = <DatapengujiUjianTa>[].obs;
+  final riwayatpersyaratan = <PesyaratanLulusData>[].obs;
+  final dosenList = <DosenData>[].obs;
+  final timelineList = <TimeLineData>[].obs;
+  final riwayatJudulList = <DataPengajuanJudul>[].obs;
+  final riwayatrekomList = <DataRekom>[].obs;
   var isLoading = true.obs;
 
-  @override
-  void onReady() {
-    super.onReady();
-    getRiwayatBimbingan();
-    getRiwayatSempro();
-    getRiwayatSemhas();
-    getriwayatujianta();
-    getPengujiUjianProposal();
-    getPengujiUjianTa();
+  Future getDosen() async {
+    try {
+      isLoading.value = true;
+      SharedPreferences server = await SharedPreferences.getInstance();
+      String? url = server.getString('baseUrl');
+      String? token = server.getString('jwtToken');
+      var response = await http.get(
+        Uri.parse("$url/simta/getdosen"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+      );
+      if (kDebugMode) {
+        print(response.body);
+      }
+      if (response.statusCode == 200) {
+        var decodeId = Getdosen.fromJson(
+          jsonDecode(response.body),
+        );
+        dosenList.value = decodeId.data;
+        update();
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future getTimeLine() async {
+    try {
+      isLoading.value = true;
+      SharedPreferences server = await SharedPreferences.getInstance();
+      String? url = server.getString('baseUrl');
+      String? token = server.getString('jwtToken');
+      var response = await http.get(
+        Uri.parse("$url/simta/timeline"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+      );
+      if (kDebugMode) {
+        print("time line ${response.body}");
+      }
+      if (response.statusCode == 200) {
+        var decodeId = TimeLine.fromJson(
+          jsonDecode(response.body),
+        );
+        timelineList.value = decodeId.data;
+        update();
+      } else {}
+    } catch (e) {
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future getRiwayatPengajuanJudul() async {
+    try {
+      isLoading.value = true;
+      SharedPreferences server = await SharedPreferences.getInstance();
+      String? url = server.getString('baseUrl');
+      String? token = server.getString('jwtToken');
+      String? id = server.getString('idmhs');
+      var response = await http.get(
+        Uri.parse("$url/simta/judulid/$id"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+      );
+      if (kDebugMode) {
+        print("riwayat judul ${response.body}");
+      }
+      if (response.statusCode == 200) {
+        var decodeId = RiwayatPengajuanJudul.fromJson(
+          jsonDecode(response.body),
+        );
+        riwayatJudulList.value = decodeId.data;
+        String namadospem = decodeId.data.first.namadosen;
+
+        SharedPreferences prefsId = await SharedPreferences.getInstance();
+        if (namadospem.isNotEmpty) {
+          await prefsId.setString('namadospem', namadospem);
+        }
+        String idstaf = decodeId.data.first.idStaf;
+        await prefsId.setString('idstaf', idstaf);
+
+        update();
+      } else {
+        riwayatJudulList.value = [];
+      }
+    } catch (e) {
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future getRiwayatRekom(String idPengajuan) async {
+    SharedPreferences server = await SharedPreferences.getInstance();
+    String? url = server.getString('baseUrl');
+    String? token = server.getString('jwtToken');
+
+    try {
+      var response = await http.get(
+        Uri.parse("$url/simta/rekomid/$idPengajuan"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+      );
+      if (kDebugMode) {
+        print(response.body);
+      }
+      if (response.statusCode == 200) {
+        var decodeId = RekomDospem.fromJson(
+          jsonDecode(response.body),
+        );
+        riwayatrekomList.value = decodeId.data;
+
+        update();
+        return true;
+      } else {
+        riwayatrekomList.value = [];
+        return false;
+      }
+    } catch (e) {
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
+      return false;
+    }
   }
 
   Future getRiwayatBimbingan() async {
@@ -47,9 +216,10 @@ class RiwayatController extends GetxController {
           'Accept': "application/json",
         },
       );
-      if (kDebugMode) {
-        print("bimbingan ${response.body}");
-      }
+      // if (kDebugMode) {
+      //   print("bimbingan ${response.body}");
+      // }
+
       if (response.statusCode == 200) {
         final parsedResponse =
             RiwayatBimbinganModel.fromJson(json.decode(response.body));
@@ -59,7 +229,13 @@ class RiwayatController extends GetxController {
         riwayatBimbinganList.value = [];
       }
     } catch (e) {
-      return false;
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -80,14 +256,14 @@ class RiwayatController extends GetxController {
           'Accept': "application/json",
         },
       );
-      if (kDebugMode) {
-        print("sempro ${response.body}");
-      }
+      // if (kDebugMode) {
+      //   print("sempro ${response.body}");
+      // }
       if (response.statusCode == 200) {
-        final parsedResponse =
+        var parsedResponse =
             RiwayatSemproModel.fromJson(json.decode(response.body));
         riwayatSemproList.value = parsedResponse.data;
-        getPengujiUjianProposal();
+        await getPengujiUjianProposal();
         update();
       } else {
         riwayatSemproList.value = [];
@@ -114,13 +290,14 @@ class RiwayatController extends GetxController {
           'Accept': "application/json",
         },
       );
-      if (kDebugMode) {
-        print("semhas ${response.body}");
-      }
+      // if (kDebugMode) {
+      //   print("semhas ${response.body}");
+      // }
       if (response.statusCode == 200) {
         final parsedResponse =
             RiwayatSemhasModel.fromJson(json.decode(response.body));
         riwayatSemhasList.value = parsedResponse.data;
+
         update();
       } else {
         riwayatSemhasList.value = [];
@@ -148,17 +325,55 @@ class RiwayatController extends GetxController {
           'Accept': "application/json",
         },
       );
-      if (kDebugMode) {
-        print("ujianta ${response.body}");
-      }
+      // if (kDebugMode) {
+      //   print("ujianta ${response.body}");
+      // }
       if (response.statusCode == 200) {
         final parsedResponse =
             RiwayatUjianTaModel.fromJson(json.decode(response.body));
         riwayatUjianTaList.value = parsedResponse.data;
-        getPengujiUjianTa();
+        await getPengujiUjianTa();
         update();
       } else {
         riwayatUjianTaList.value = [];
+      }
+    } catch (error) {
+      // Handle error
+      if (kDebugMode) {
+        print('Error ujian ta: $error');
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future getpersyaratan() async {
+    try {
+      isLoading.value = true;
+      SharedPreferences server = await SharedPreferences.getInstance();
+      String? url = server.getString('baseUrl');
+      String? token = server.getString('jwtToken');
+      String? id = server.getString('idmhs');
+
+      final response = await http.get(
+        Uri.parse('$url/simta/getpersyaratan/$id'),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': "$token",
+          'Accept': "application/json",
+        },
+      );
+      // if (kDebugMode) {
+      //   print("persyaratan ${response.body}");
+      // }
+
+      if (response.statusCode == 200) {
+        final parsedResponse =
+            PersyatanLulusModel.fromJson(json.decode(response.body));
+        riwayatpersyaratan.value = parsedResponse.data;
+        update();
+      } else {
+        riwayatpersyaratan.value = [];
       }
     } catch (error) {
       // Handle error
@@ -176,32 +391,55 @@ class RiwayatController extends GetxController {
       SharedPreferences server = await SharedPreferences.getInstance();
       String? url = server.getString('baseUrl');
       String? token = server.getString('jwtToken');
-      String? baru = riwayatSemproList.first.idUjianproposal;
 
-      final response = await http.get(
-        Uri.parse('$url/simta/dosenpengujiproposal/$baru'),
-        headers: {
-          'X-API-Key': "simta",
-          'Authorization': "$token",
-          'Accept': "application/json",
-        },
-      );
-      if (kDebugMode) {
-        print("penguji ujian proposal ${response.body}");
-        print(baru);
+      List<String> idUjianProposalList = riwayatSemproList
+          .where((element) =>
+              element.statusAjuan == 'diterima' ||
+              element.statusAjuan == 'pending')
+          .map((element) => element.idUjianproposal)
+          .toList();
+
+      List<RiwayatSemproData> riwayatSemproTampil = [];
+
+      for (String idUjianProposal in idUjianProposalList) {
+        final response = await http.get(
+          Uri.parse('$url/simta/dosenpengujiproposal/$idUjianProposal'),
+          headers: {
+            'X-API-Key': "simta",
+            'Authorization': "$token",
+            'Accept': "application/json",
+          },
+        );
+        // if (kDebugMode) {
+        //   print("penguji ujian proposal ${response.body}");
+        // }
+
+        if (response.statusCode == 200) {
+          final parsedResponse =
+              PengujiUjianProposalModel.fromJson(json.decode(response.body));
+          List<DataPengujiUjianProposal> pengujiList = parsedResponse.data;
+          RiwayatSemproData riwayatSempro = riwayatSemproList.firstWhere(
+            (element) => element.idUjianproposal == idUjianProposal,
+          );
+
+          riwayatSempro.pengujiList = pengujiList;
+          riwayatSemproTampil.add(riwayatSempro);
+        } else {
+          RiwayatSemproData riwayatSempro = riwayatSemproList.firstWhere(
+            (element) => element.idUjianproposal == idUjianProposal,
+          );
+          riwayatSemproTampil.add(riwayatSempro);
+          riwayatSempro.pengujiList = [];
+        }
       }
-      if (response.statusCode == 200) {
-        final parsedResponse =
-            PengujiUjianProposalModel.fromJson(json.decode(response.body));
-        pengujiUjianProposalList.value = parsedResponse.data;
-        update();
-      } else {
-        pengujiUjianProposalList.value = [];
-      }
+
+      riwayatSemproList.value = riwayatSemproTampil;
+
+      return true;
     } catch (error) {
       // Handle error
       if (kDebugMode) {
-        print('Error anying: $error');
+        print('Error : $error');
       }
     } finally {
       isLoading.value = false;
@@ -214,28 +452,48 @@ class RiwayatController extends GetxController {
       SharedPreferences server = await SharedPreferences.getInstance();
       String? url = server.getString('baseUrl');
       String? token = server.getString('jwtToken');
-      String? idujianta = riwayatUjianTaList.first.idUjianta;
 
-      final response = await http.get(
-        Uri.parse('$url/simta/dosenpengujiata/$idujianta'),
-        headers: {
-          'X-API-Key': "simta",
-          'Authorization': "$token",
-          'Accept': "application/json",
-        },
-      );
-      if (kDebugMode) {
-        print("penguji ujian proposal ${response.body}");
-        print(idujianta);
+      List<String> idujiantaList = riwayatUjianTaList
+          .where((element) =>
+              element.statusAjuan == 'diterima' ||
+              element.statusAjuan == 'pending')
+          .map((element) => element.idUjianta)
+          .toList();
+
+      List<RiwayatUjianTaData> riwayatUjianTaTampil = [];
+
+      for (String idUjianTa in idujiantaList) {
+        final response = await http.get(
+          Uri.parse('$url/simta/dosenpengujiata/$idUjianTa'),
+          headers: {
+            'X-API-Key': "simta",
+            'Authorization': "$token",
+            'Accept': "application/json",
+          },
+        );
+        // if (kDebugMode) {
+        //   print("penguji ujian ta ${response.body}");
+        // }
+        if (response.statusCode == 200) {
+          final parsedResponse =
+              PengujiUjianTaModel.fromJson(json.decode(response.body));
+          List<DatapengujiUjianTa> pengujiList = parsedResponse.data;
+          RiwayatUjianTaData riwayatTA = riwayatUjianTaList.firstWhere(
+            (element) => element.idUjianta == idUjianTa,
+          );
+
+          riwayatTA.pengujiList = pengujiList;
+          riwayatUjianTaTampil.add(riwayatTA);
+        } else {
+          RiwayatUjianTaData riwayatTA = riwayatUjianTaList.firstWhere(
+            (element) => element.idUjianta == idUjianTa,
+          );
+
+          riwayatUjianTaTampil.add(riwayatTA);
+          riwayatTA.pengujiList = [];
+        }
       }
-      if (response.statusCode == 200) {
-        final parsedResponse =
-            PengujiUjianTaModel.fromJson(json.decode(response.body));
-        pengujiUjianTalList.value = parsedResponse.data;
-        update();
-      } else {
-        pengujiUjianTalList.value = [];
-      }
+      riwayatUjianTaList.value = riwayatUjianTaTampil;
     } catch (error) {
       // Handle error
       if (kDebugMode) {

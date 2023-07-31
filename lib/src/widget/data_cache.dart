@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../model/persyaratan_lulus.dart';
 
 Future<int?> getUserIdFromSharedPreferences() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -32,5 +36,25 @@ Future<List<String>?> getStringFromSharedPreferences() async {
       print('Error: $error');
     }
     return null;
+  }
+}
+
+void saveDataToSharedPreferences(List<PersyatanLulusModel> data) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> dataList =
+      data.map((model) => json.encode(model.toJson())).toList();
+  prefs.setStringList('persyaratanLulusList', dataList);
+}
+
+Future<List<PersyatanLulusModel>> loadDataFromSharedPreferences() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String>? dataList = prefs.getStringList('persyaratanLulusList');
+  if (dataList != null) {
+    return dataList
+        .map((jsonString) =>
+            PersyatanLulusModel.fromJson(json.decode(jsonString)))
+        .toList();
+  } else {
+    return [];
   }
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:simta1/src/pages/mahasiswa/pengajuan_seminar_hasil/pengajuan_semianr_hasil.dart';
-import 'package:simta1/src/pages/mahasiswa/pengajuan_seminar_hasil/riwayat_seminar_hasil.dart';
+import 'package:simta1/src/pages/mahasiswa/pengajuan_judul_ta/pengajuan_judul_page.dart';
+import 'package:simta1/src/pages/mahasiswa/pengajuan_judul_ta/riwayat_judul_ta.dart';
 
 import '../../../theme/simta_color.dart';
 
-class SeminarHasil extends StatelessWidget {
-  const SeminarHasil({super.key});
+class JudulPage extends StatelessWidget {
+  const JudulPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +35,15 @@ class SeminarHasil extends StatelessWidget {
               );
             },
           ),
-          title: const Text("Pengajuan Jadwal Seminar Hasil",
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.black,
-              )),
+          title: const Text(
+            "Pengajuan Judul Tugas Akhir",
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
           centerTitle: true,
         ),
         body: Container(
@@ -78,8 +80,8 @@ class SeminarHasil extends StatelessWidget {
               Expanded(
                 child: TabBarView(
                   children: [
-                    PengajuanSeminarHasil(),
-                    RiwayatSeminarHasil(),
+                    PengajuanJudul(),
+                    RiwayatJudulPage(),
                   ],
                 ),
               )

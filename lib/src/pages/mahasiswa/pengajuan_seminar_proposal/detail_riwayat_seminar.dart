@@ -7,10 +7,9 @@ import 'package:get/get.dart';
 
 import '../../../model/riwayat_sempro_model.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/upload_file_provider.dart';
 import '../../../theme/simta_color.dart';
 import 'package:intl/intl.dart';
-
-import '../../../widget/widget.dart';
 
 class DetailRiwayatSeminar extends StatefulWidget {
   final RiwayatSemproData sempro;
@@ -22,6 +21,7 @@ class DetailRiwayatSeminar extends StatefulWidget {
 
 class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
   final AuthController authController = Get.find();
+  final UploadController uploadController = Get.find();
   PlatformFile? file;
   String? newfile;
   bool isLoading = false;
@@ -33,7 +33,28 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
     DateTime parsedDateTime =
         DateTime.fromMillisecondsSinceEpoch(int.parse(widget.sempro.tanggal));
     String formatDate = DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-    String timedate = DateFormat("HH:mm").format(parsedDateTime);
+
+    String jammasuk = '';
+    String jamkeluar = '';
+    //?jam mulai
+    if (widget.sempro.jamMulai.isNotEmpty) {
+      int? jamMulai = int.tryParse(widget.sempro.jamMulai);
+      if (jamMulai != null) {
+        DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.sempro.jamMulai));
+        jammasuk = DateFormat("HH:mm").format(parsedMulai);
+      }
+    }
+    //? jam selesai
+    if (widget.sempro.jamSelesai.isNotEmpty) {
+      int? jamSelesai = int.tryParse(widget.sempro.jamSelesai);
+      if (jamSelesai != null) {
+        DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.sempro.jamSelesai));
+        jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+      }
+    }
+
     final appBar = AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
@@ -186,7 +207,7 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
                           height: 3,
                         ),
                         Text(
-                          '$formatDate $timedate',
+                          '$formatDate $jammasuk - $jamkeluar',
                           style: const TextStyle(
                               fontFamily: 'Open Sans',
                               fontWeight: FontWeight.w600,
@@ -217,14 +238,23 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
                         const SizedBox(
                           height: 30,
                         ),
-                        text("Upload Revisi Proposal"),
+                        const Text(
+                          'Upload Revisi Proposal',
+                          style: TextStyle(
+                              fontFamily: 'Open Sans',
+                              fontSize: 11,
+                              color: SimtaColor.grey2),
+                        ),
+                        const SizedBox(
+                          height: 3,
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(
                             top: 10,
                             bottom: 10,
                           ),
                           child: RawMaterialButton(
-                            onPressed: widget.sempro.statusUp ==
+                            onPressed: widget.sempro.statusUp.toUpperCase() ==
                                         'LULUS DENGAN REVISI' &&
                                     widget.sempro.revisiProposal.isNotEmpty
                                 ? () {
@@ -246,7 +276,7 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
                                     );
                                   }
                                 : () async {
-                                    widget.sempro.statusUp !=
+                                    widget.sempro.statusUp.toUpperCase() !=
                                             'LULUS DENGAN REVISI'
                                         ? Get.snackbar(
                                             "Pesan!",
@@ -333,7 +363,12 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
                               // uploadFile(File(file!.path!));
                               if (file == null) {
                                 Get.snackbar(
-                                    "error", "Pilih File Terlebih Dahulu");
+                                  "error",
+                                  "Pilih File Terlebih Dahulu",
+                                  boxShadows: [],
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
                               } else {
                                 submit();
                               }
@@ -374,10 +409,6 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
     if (result != null && result.files.isNotEmpty) {
       file = result.files.first;
 
-      uploadFile(file!.path!);
-      if (kDebugMode) {
-        print(file!.path);
-      }
       return file;
     } else {
       return null;
@@ -391,14 +422,14 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
       });
 
       String resultfile =
-          await authController.revisiproposalFileSempro(filepath);
+          await uploadController.revisiproposalFileSempro(filepath);
       setState(() {
         newfile = resultfile;
       });
       setState(() {
         isLoading = false;
       });
-      return;
+      return true;
     } catch (e) {
       if (kDebugMode) {
         print(e);
@@ -408,16 +439,25 @@ class _DetailRiwayatSeminarState extends State<DetailRiwayatSeminar> {
   }
 
   void submit() async {
-    bool revisisempro = await authController.updaterevisisempro(
-      widget.sempro.idUjianproposal,
-      newfile!,
-    );
-
-    if (revisisempro == true) {
-      Get.back(
-        closeOverlays: true,
+    bool uploadfile = await uploadFile(file!.path!);
+    if (uploadfile == true) {
+      bool revisisempro = await authController.updaterevisisempro(
+        widget.sempro.idUjianproposal,
+        newfile!,
       );
-      Get.snackbar("Succes", "Data Behasil Diupload");
+
+      if (revisisempro == true) {
+        Get.back(
+          closeOverlays: true,
+        );
+        Get.snackbar(
+          "Succes",
+          "Data Behasil Diupload",
+          boxShadows: [],
+          backgroundColor: Colors.green.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      }
     }
   }
 }

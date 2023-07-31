@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:simta1/src/pages/screen/landing_page.dart';
+import 'package:get/get.dart';
 
 class ConnectionPage extends StatefulWidget {
   final String error;
@@ -23,9 +23,9 @@ class _ConnectionPageState extends State<ConnectionPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () => Future.value(true),
-      child: SingleChildScrollView(
-        child: Container(
-          color: Colors.white,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.only(top: 120),
             child: Column(
@@ -60,12 +60,7 @@ class _ConnectionPageState extends State<ConnectionPage> {
                 widget.button == true
                     ? RawMaterialButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LandingPage(),
-                            ),
-                          );
+                          Get.offNamed("/");
                         },
                         fillColor: const Color(0xff0A6DED),
                         constraints:

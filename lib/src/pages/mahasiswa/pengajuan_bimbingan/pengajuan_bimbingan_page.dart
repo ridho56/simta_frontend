@@ -1,18 +1,16 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:top_snackbar_flutter/custom_snack_bar.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/riwayat_provider.dart';
+import '../../../theme/simta_color.dart';
 import '../../../widget/alert.dart';
 import '../../../widget/widget.dart';
-import '../../../theme/simta_color.dart';
 
 class PengajuanBimbingan extends StatefulWidget {
   const PengajuanBimbingan({super.key});
@@ -23,11 +21,13 @@ class PengajuanBimbingan extends StatefulWidget {
 
 class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
   final AuthController authController = Get.find();
+  final RiwayatController riwayatController = Get.find();
   TextEditingController dateController = TextEditingController();
   TextEditingController timeinput = TextEditingController();
   late int datemillis;
   late int timeMillis;
   bool change = false;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +35,7 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
       child: Container(
         padding: const EdgeInsets.only(left: 20, right: 20, top: 30),
         child: Form(
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -66,8 +67,17 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
                     },
                     padding: const EdgeInsets.only(right: 10),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: SimtaColor.birubar,
+                    ),
                   ),
                   hintText: 'Pilih Tanggal',
                 ),
@@ -104,10 +114,19 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
                     },
                     padding: const EdgeInsets.only(right: 10),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                    ),
                   ),
-                  hintText: 'Pilih Tanggal',
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: SimtaColor.birubar,
+                    ),
+                  ),
+                  hintText: 'Pilih Jam',
                 ),
               ),
               const SizedBox(
@@ -125,7 +144,7 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
                 height: 80,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: SimtaColor.grey)),
+                    border: Border.all(color: SimtaColor.birubar)),
                 child: Row(
                   children: [
                     const CircleAvatar(
@@ -136,26 +155,40 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
                     const SizedBox(
                       width: 15,
                     ),
-                    FutureBuilder<String?>(
-                      future: getStringFromSharedPreferences(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<dynamic> snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else {
-                          return Text(
-                            snapshot.data,
-                            overflow: TextOverflow.clip,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          );
-                        }
-                      },
+                    Flexible(
+                      child: FutureBuilder<String?>(
+                        future: getStringFromSharedPreferences(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<dynamic> snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            final data = snapshot.data;
+                            if (data == null || data.isEmpty) {
+                              return const Text(
+                                "Belum Ada Dosen Pembimbing",
+                                overflow: TextOverflow.clip,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              );
+                            } else {
+                              return Text(
+                                data,
+                                overflow: TextOverflow.clip,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -164,11 +197,19 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 20, top: 20),
                 child: RawMaterialButton(
-                  onPressed: change
-                      ? null
-                      : () async {
-                          _combineDateTimeMillis();
-                        },
+                  onPressed: () {
+                    if (riwayatController.riwayatBimbinganList.isNotEmpty &&
+                        riwayatController.riwayatBimbinganList.first.statusAjuan
+                                .toLowerCase() ==
+                            'pending') {
+                      Get.snackbar(
+                          "Pesan", "Status Ajuan Sebelumnya Masih Pending");
+                    } else if (change) {
+                      return;
+                    } else {
+                      _combineDateTimeMillis();
+                    }
+                  },
                   fillColor: SimtaColor.birubar,
                   constraints: BoxConstraints(
                       minHeight: 49,
@@ -243,30 +284,24 @@ class _PengajuanBimbinganState extends State<PengajuanBimbingan> {
       setState(() {
         change = true;
       });
-      if (kDebugMode) {
-        print(datamillis);
-      }
 
       bool pengajuan =
           await authController.pengajuanBimbingan(datamillis.toString());
 
       if (pengajuan == true) {
         showprogess(context);
-      } else {
-        print("salah");
       }
-    } else if (dateController.text.isEmpty && timeinput.text.isEmpty) {
-      snakbar();
+    } else {
+      Get.snackbar(
+        "Error",
+        "Data Tidak Boleh Kosong",
+        boxShadows: [],
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
-  }
-
-  void snakbar() {
-    showTopSnackBar(
-      context,
-      const CustomSnackBar.error(
-        message: "Data Tidak Boleh Kosong",
-        boxShadow: [],
-      ),
-    );
+    setState(() {
+      change = false;
+    });
   }
 }

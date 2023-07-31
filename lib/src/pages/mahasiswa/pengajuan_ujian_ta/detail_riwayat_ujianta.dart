@@ -7,10 +7,9 @@ import 'package:get/get.dart';
 import 'package:simta1/src/model/riwayat_ujianta_model.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/upload_file_provider.dart';
 import '../../../theme/simta_color.dart';
 import 'package:intl/intl.dart';
-
-import '../../../widget/widget.dart';
 
 class DetailRiwayatUjianTa extends StatefulWidget {
   final RiwayatUjianTaData ujianta;
@@ -22,6 +21,7 @@ class DetailRiwayatUjianTa extends StatefulWidget {
 
 class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
   final AuthController authController = Get.find();
+  final UploadController uploadController = Get.find();
   PlatformFile? file;
   String? newfile;
   bool isLoading = false;
@@ -33,7 +33,28 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
     DateTime parsedDateTime =
         DateTime.fromMillisecondsSinceEpoch(int.parse(widget.ujianta.tanggal));
     String formatDate = DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-    String timedate = DateFormat("HH:mm").format(parsedDateTime);
+
+    String jammasuk = '';
+    String jamkeluar = '';
+    //?jam mulai
+    if (widget.ujianta.jamMulai.isNotEmpty) {
+      int? jamMulai = int.tryParse(widget.ujianta.jamMulai);
+      if (jamMulai != null) {
+        DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.ujianta.jamMulai));
+        jammasuk = DateFormat("HH:mm").format(parsedMulai);
+      }
+    }
+    //? jam selesai
+    if (widget.ujianta.jamSelesai.isNotEmpty) {
+      int? jamSelesai = int.tryParse(widget.ujianta.jamSelesai);
+      if (jamSelesai != null) {
+        DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.ujianta.jamSelesai));
+        jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+      }
+    }
+
     final appBar = AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
@@ -186,7 +207,7 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
                           height: 3,
                         ),
                         Text(
-                          '$formatDate $timedate',
+                          '$formatDate $jammasuk - $jamkeluar',
                           style: const TextStyle(
                               fontFamily: 'Open Sans',
                               fontWeight: FontWeight.w600,
@@ -217,14 +238,23 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
                         const SizedBox(
                           height: 30,
                         ),
-                        text("Upload Revisi Proposal"),
+                        const Text(
+                          'Upload Revisi Proposal',
+                          style: TextStyle(
+                              fontFamily: 'Open Sans',
+                              fontSize: 11,
+                              color: SimtaColor.grey2),
+                        ),
+                        const SizedBox(
+                          height: 3,
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(
                             top: 10,
                             bottom: 10,
                           ),
                           child: RawMaterialButton(
-                            onPressed: widget.ujianta.statusUt ==
+                            onPressed: widget.ujianta.statusUt.toUpperCase() ==
                                         'LULUS DENGAN REVISI' &&
                                     widget.ujianta.revisiProposal.isNotEmpty
                                 ? () {
@@ -246,7 +276,7 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
                                     );
                                   }
                                 : () async {
-                                    widget.ujianta.statusUt !=
+                                    widget.ujianta.statusUt.toUpperCase() !=
                                             'LULUS DENGAN REVISI'
                                         ? Get.snackbar(
                                             "Pesan!",
@@ -333,7 +363,12 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
                               // uploadFile(File(file!.path!));
                               if (file == null) {
                                 Get.snackbar(
-                                    "error", "Pilih File Terlebih Dahulu");
+                                  "error",
+                                  "Pilih File Terlebih Dahulu",
+                                  boxShadows: [],
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
                               } else {
                                 submit();
                               }
@@ -374,10 +409,10 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
     if (result != null && result.files.isNotEmpty) {
       file = result.files.first;
 
-      uploadFile(file!.path!);
-      if (kDebugMode) {
-        print(file!.path);
-      }
+      // uploadFile(file!.path!);
+      // if (kDebugMode) {
+      //   print(file!.path);
+      // }
       return file;
     } else {
       return null;
@@ -391,14 +426,14 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
       });
 
       String resultfile =
-          await authController.revisiproposalFileUjianTA(filepath);
+          await uploadController.revisiproposalFileUjianTA(filepath);
       setState(() {
         newfile = resultfile;
       });
       setState(() {
         isLoading = false;
       });
-      return;
+      return true;
     } catch (e) {
       if (kDebugMode) {
         print(e);
@@ -408,16 +443,24 @@ class _DetailRiwayatUjianTaState extends State<DetailRiwayatUjianTa> {
   }
 
   void submit() async {
-    bool revisiujianta = await authController.updaterevisiujianta(
-      widget.ujianta.idUjianta,
-      newfile!,
-    );
-
-    if (revisiujianta == true) {
-      Get.back(
-        closeOverlays: true,
+    bool uploadfile = await uploadFile(file!.path!);
+    if (uploadfile == true) {
+      bool revisiujianta = await authController.updaterevisiujianta(
+        widget.ujianta.idUjianta,
+        newfile!,
       );
-      Get.snackbar("Succes", "Data Behasil Diupload");
+      if (revisiujianta == true) {
+        Get.back(
+          closeOverlays: true,
+        );
+        Get.snackbar(
+          "Succes",
+          "Data Behasil Diupload",
+          boxShadows: [],
+          backgroundColor: Colors.green.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      }
     }
   }
 }

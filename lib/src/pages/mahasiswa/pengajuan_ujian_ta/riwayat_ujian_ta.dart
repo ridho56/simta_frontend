@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:simta1/src/providers/riwayat_provider.dart';
 import 'package:simta1/src/widget/refresh_widget.dart';
 
@@ -64,7 +63,6 @@ class _RiwayatUjianTaState extends State<RiwayatUjianTa> {
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: listRiwayat.length,
               itemBuilder: (BuildContext context, int index) {
-                final listpenguji = riwayatController.pengujiUjianTalList;
                 final listRiwayat = riwayatController.riwayatUjianTaList[index];
                 DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
                     int.parse(listRiwayat.tanggal));
@@ -217,28 +215,25 @@ class _RiwayatUjianTaState extends State<RiwayatUjianTa> {
                             left: 19, right: 19, bottom: 25),
                         child: InkWell(
                           onTap: () {
-                            Navigator.push(
-                                context,
-                                PageTransition(
-                                  child: DetailRiwayatUjianTa(
-                                    ujianta: listRiwayat,
-                                  ),
-                                  type: PageTransitionType.rightToLeft,
-                                  duration: const Duration(milliseconds: 400),
-                                  reverseDuration:
-                                      const Duration(milliseconds: 400),
-                                ));
+                            Get.to(
+                                () =>
+                                    DetailRiwayatUjianTa(ujianta: listRiwayat),
+                                transition: Transition.rightToLeft);
                           },
-                          child: Fieldditerima(
-                            judul: "Pengajuan Jadwal Ujian TA",
-                            tanggal: formatDate,
-                            jam: '$jammasuk - $jamkeluar',
-                            statusAjuan: listRiwayat.statusAjuan.toUpperCase(),
-                            ruangan: listRiwayat.ruangan,
-                            pengujilist: listpenguji
-                                .map((penguji) => penguji.namaPenguji)
-                                .toList(),
-                          ),
+                          child: listRiwayat.statusUt.toLowerCase() == "gagal"
+                              ? Container()
+                              : Fieldditerima(
+                                  judul: "Pengajuan Jadwal Ujian TA",
+                                  tanggal: formatDate,
+                                  jam: '$jammasuk - $jamkeluar',
+                                  statusAjuan:
+                                      listRiwayat.statusAjuan.toUpperCase(),
+                                  ruangan: listRiwayat.ruangan,
+                                  pengujilist: listRiwayat.pengujiList,
+                                  // listpenguji
+                                  //     .map((penguji) => penguji.namaPenguji)
+                                  //     .toList(),
+                                ),
                         ),
                       );
               },

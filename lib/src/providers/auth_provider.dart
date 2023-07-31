@@ -4,17 +4,18 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simta1/src/model/login_baru.dart';
 import 'package:simta1/src/model/pengajuan_bimbingan_model.dart';
+import 'package:simta1/src/model/pengajuan_judul_model.dart';
 import 'package:simta1/src/model/pengajuan_semhas_model.dart';
 import 'package:simta1/src/providers/riwayat_provider.dart';
-import 'package:simta1/src/model/upload_proposalawal_model.dart';
+import 'package:simta1/src/providers/upload_file_provider.dart';
 
 import '../helper/conecttion.dart';
 import '../helper/exception_handler.dart';
@@ -25,6 +26,17 @@ import '../theme/simta_color.dart';
 
 class AuthController extends GetxController {
   final RiwayatController riwayatController = Get.find<RiwayatController>();
+  final UploadController uploadController = Get.find<UploadController>();
+
+  // @override
+  // void onInit() {
+  //   super.onInit();
+  //   loadDataFromSharedPreferences().then((data) {
+  //     persyaratanLulusList = data;
+  //     // Panggil update() jika diperlukan
+  //     // update();
+  //   });
+  // }
 
   Future loginBaru(String emailorusername, String password) async {
     SharedPreferences server = await SharedPreferences.getInstance();
@@ -43,36 +55,40 @@ class AuthController extends GetxController {
         },
         body: msg,
       );
+      if (kDebugMode) {
+        print(response.body);
+      }
 
       if (response.statusCode == 200) {
-        var decodeId = LoginBaru.fromJson(
+        var decodeId = LogiBaru.fromJson(
           jsonDecode(response.body),
         );
         int idLogin = decodeId.data.id;
         String idmhs = decodeId.data.idMhs;
-        String idstaf = decodeId.data.idStaf;
+
         String email = decodeId.data.emailOrUsername;
-        String namadospem = decodeId.data.namaIdDosen;
+
         String namamhs = decodeId.data.namaIdMhs;
         String prodi = decodeId.data.prodi;
 
         SharedPreferences prefsId = await SharedPreferences.getInstance();
         await prefsId.setInt('idLogin', idLogin);
         await prefsId.setString('idmhs', idmhs);
-        await prefsId.setString('idstaf', idstaf);
+
         await prefsId.setString('email', email);
-        await prefsId.setString('namadospem', namadospem);
+
         await prefsId.setString('namamhs', namamhs);
         await prefsId.setString('prodi', prodi);
 
         String token = response.headers['authorization'] ?? '';
         await prefsId.setString('jwtToken', token);
+        await handleAuthentication(emailorusername, password);
 
         return true;
       } else {
         var decodeData = FalseModel.fromJson(jsonDecode(response.body));
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('errorpass', decodeData.data.toString());
+        await prefs.setString('errorpass', decodeData.data.toString());
         return false;
       }
     } catch (e) {
@@ -83,6 +99,109 @@ class AuthController extends GetxController {
           button: true,
         ),
       );
+      return false;
+    }
+  }
+
+  Future pengajuanJudl(
+    String namajudul1,
+    String deskripsi1,
+    String namajudul2,
+    String deskripsi2,
+    String namajudul3,
+    String deskripsi3,
+    String idstaf1,
+    String idstaf2,
+  ) async {
+    SharedPreferences server = await SharedPreferences.getInstance();
+    String? url = server.getString('baseUrl');
+    String? token = server.getString('jwtToken');
+    String? idmhs = server.getString('idmhs');
+    try {
+      final msg = jsonEncode({
+        "id_mhs": idmhs,
+        "Nama_judul1": namajudul1,
+        "deskripsi1": deskripsi1,
+        "Nama_judul2": namajudul2,
+        "deskripsi2": deskripsi2,
+        "Nama_judul3": namajudul3,
+        "deskripsi3": deskripsi3,
+      });
+
+      var response = await http.post(
+        Uri.parse("$url/simta/pengajuanjudul"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+        body: msg,
+      );
+      if (kDebugMode) {
+        print(response.body);
+      }
+
+      if (response.statusCode == 200) {
+        var decodeId = PengajuanJudul.fromJson(
+          jsonDecode(response.body),
+        );
+
+        String idpengajuanjudul = decodeId.data.idPengajuanjudul;
+        await rekomDospem(idstaf1, idstaf2, idpengajuanjudul);
+
+        await riwayatController.getRiwayatPengajuanJudul();
+
+        return true;
+      } else {
+        Get.snackbar("error", "Pengajuan Gagal");
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future rekomDospem(
+    String idstaf1,
+    String idstaf2,
+    String idpengajuan,
+  ) async {
+    SharedPreferences server = await SharedPreferences.getInstance();
+    String? url = server.getString('baseUrl');
+    String? token = server.getString('jwtToken');
+    try {
+      final msg = jsonEncode([
+        {
+          "id_staf": idstaf1,
+          "id_pengajuan": idpengajuan,
+          "nama_rekom": "REKOMENDASI 1"
+        },
+        {
+          "id_staf": idstaf2,
+          "id_pengajuan": idpengajuan,
+          "nama_rekom": "REKOMENDASI 2"
+        }
+      ]);
+
+      var response = await http.post(
+        Uri.parse("$url/simta/rekomdospem"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': token!,
+          'Accept': "application/json",
+        },
+        body: msg,
+      );
+      if (kDebugMode) {
+        print(response.body);
+      }
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
       return false;
     }
   }
@@ -117,6 +236,7 @@ class AuthController extends GetxController {
 
         return true;
       } else {
+        Get.snackbar("error", "Pengajuan Gagal");
         return false;
       }
     } catch (e) {
@@ -174,7 +294,11 @@ class AuthController extends GetxController {
   }
 
   Future pengajuanSempro(
-      String jadwal, String judulta, String abstrak, String proposal) async {
+    String jadwal,
+    String judulta,
+    String abstrak,
+    String proposal,
+  ) async {
     SharedPreferences server = await SharedPreferences.getInstance();
     String? url = server.getString('baseUrl');
     String? token = server.getString('jwtToken');
@@ -187,7 +311,7 @@ class AuthController extends GetxController {
         "judul_ta": judulta,
         "abstract": abstrak,
         "tanggal": jadwal,
-        "proposal": proposal
+        "proposal": proposal,
       });
 
       var response = await http.post(
@@ -211,9 +335,11 @@ class AuthController extends GetxController {
         await prefsId.setString('namaproposal', namaproposal);
         await prefsId.setString('id_ujianproposal', idUjianproposal);
         riwayatController.getRiwayatSempro();
+        update();
 
         return true;
       } else {
+        Get.snackbar("error", "Pengajuan Gagal");
         return false;
       }
     } catch (e) {
@@ -270,7 +396,11 @@ class AuthController extends GetxController {
   }
 
   Future pengajuanSemhas(
-      String jadwal, String judulta, String abstrak, String proposal) async {
+    String jadwal,
+    String judulta,
+    String abstrak,
+    String proposal,
+  ) async {
     SharedPreferences server = await SharedPreferences.getInstance();
     String? url = server.getString('baseUrl');
     String? token = server.getString('jwtToken');
@@ -280,6 +410,8 @@ class AuthController extends GetxController {
       final msg = jsonEncode({
         "id_mhs": idmhs,
         "id_staf": idstaf,
+        "id_ujianproposal":
+            riwayatController.riwayatSemproList.first.idUjianproposal,
         "nama_judul": judulta,
         "abstrak": abstrak,
         "jadwal_semhas": jadwal,
@@ -299,10 +431,11 @@ class AuthController extends GetxController {
         print(response.body);
       }
       if (response.statusCode == 200) {
-        await riwayatController.getRiwayatSemhas();
+        riwayatController.getRiwayatSemhas();
 
         return true;
       } else {
+        Get.snackbar("error", "Pengajuan Gagal");
         return false;
       }
     } catch (e) {
@@ -356,7 +489,14 @@ class AuthController extends GetxController {
   }
 
   Future pengajuanUjianTa(
-      String jadwal, String judulta, String abstrak, String proposal) async {
+      String jadwal,
+      String judulta,
+      String abstrak,
+      String proposal,
+      String beritaacarakmm,
+      String krs,
+      String transkrip,
+      String rekom) async {
     SharedPreferences server = await SharedPreferences.getInstance();
     String? url = server.getString('baseUrl');
     String? token = server.getString('jwtToken');
@@ -366,10 +506,16 @@ class AuthController extends GetxController {
       final msg = jsonEncode({
         "id_mhs": idmhs,
         "id_staf": idstaf,
+        "id_ujianproposal":
+            riwayatController.riwayatSemproList.first.idUjianproposal,
         "nama_judul": judulta,
         "abstrak": abstrak,
         "tanggal": jadwal,
-        "proposalakhir": proposal
+        "proposalakhir": proposal,
+        "berita_acarakmm": beritaacarakmm,
+        "krs": krs,
+        "transkrip_nilai": transkrip,
+        "rekomendasi_dospem": rekom,
       });
 
       var response = await http.post(
@@ -381,9 +527,66 @@ class AuthController extends GetxController {
         },
         body: msg,
       );
+      if (kDebugMode) {
+        print(response.body);
+      }
 
       if (response.statusCode == 200) {
-        await riwayatController.getriwayatujianta();
+        riwayatController.getriwayatujianta();
+        update();
+
+        return true;
+      } else {
+        Get.snackbar("error", "Pengajuan Gagal");
+      }
+    } catch (e) {
+      var error = ExceptionHandlers().getExceptionString(e);
+      Get.offAll(
+        () => ConnectionPage(
+          error: error,
+          button: true,
+        ),
+      );
+      return false;
+    }
+  }
+
+  Future lulus(
+    String laporan,
+    String halamanPengesahan,
+    String halamanPersetujuan,
+    String sourceCode,
+    String manualbook,
+    String ktp,
+  ) async {
+    SharedPreferences server = await SharedPreferences.getInstance();
+    String? url = server.getString('baseUrl');
+    String? token = server.getString('jwtToken');
+    String? idmhs = server.getString('idmhs');
+    try {
+      final msg = jsonEncode({
+        "id_mhs": idmhs,
+        "laporan_lengkap": laporan,
+        "halaman_pengesahan": halamanPengesahan,
+        "halaman_persetujuandosen": halamanPersetujuan,
+        "source_code": sourceCode,
+        "manual_book": manualbook,
+        "ktp": ktp
+      });
+
+      var response = await http.post(
+        Uri.parse("$url/simta/persaratanlulus"),
+        headers: {
+          'X-API-Key': "simta",
+          'Authorization': "$token",
+          'Accept': "application/json",
+        },
+        body: msg,
+      );
+      // print(response.body);
+
+      if (response.statusCode == 200) {
+        riwayatController.getpersyaratan();
 
         return true;
       } else {}
@@ -399,7 +602,7 @@ class AuthController extends GetxController {
     }
   }
 
-  Future updaterevisiujianta(String idujianta, String revisiproposal) async {
+  Future updaterevisiujianta(String idujianta, String revisiujianta) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? url = prefs.getString('baseUrl');
     String? token = prefs.getString('jwtToken');
@@ -407,7 +610,7 @@ class AuthController extends GetxController {
     try {
       final msg = jsonEncode({
         "id_ujianta": idujianta,
-        "revisi_proposal": revisiproposal,
+        "revisi_proposal": revisiujianta,
       });
 
       var response = await http.put(
@@ -438,197 +641,6 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<String> uploadFileSempro(String filePath) async {
-    String? filename;
-    try {
-      String url = 'http://d3ti.myfin.id/uploadproposalwal';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
-  Future<String> revisiproposalFileSempro(String filePath) async {
-    String? filename;
-    try {
-      openDownloadedFile(filePath);
-      String url = 'http://d3ti.myfin.id/revisiproposalwal';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
-  Future<String> uploadFileSemhas(String filePath) async {
-    String? filename;
-    try {
-      openDownloadedFile(filePath);
-      String url = 'http://d3ti.myfin.id/uploadproposalsemhas';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
-  Future<String> revisiproposalFileSemhas(String filePath) async {
-    String? filename;
-    try {
-      openDownloadedFile(filePath);
-      String url = 'http://d3ti.myfin.id/revisiproposalsemhas';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
-  Future<String> uploadFileUjianTa(String filePath) async {
-    String? filename;
-    try {
-      openDownloadedFile(filePath);
-      String url = 'http://d3ti.myfin.id/uploadproposalakhir';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
-  Future<String> revisiproposalFileUjianTA(String filePath) async {
-    String? filename;
-    try {
-      openDownloadedFile(filePath);
-      String url = 'http://d3ti.myfin.id/revisiproposalakhir';
-      var request = http.MultipartRequest('POST', Uri.parse(url));
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        var responseString = await response.stream.bytesToString();
-        var decodeId =
-            UploadFileProposalAwalModel.fromJson(jsonDecode(responseString));
-        String mesaage = decodeId.message;
-        filename = decodeId.fileName;
-        if (kDebugMode) {
-          print(mesaage);
-        }
-      } else {
-        if (kDebugMode) {
-          print('Error uploading file: ${response.reasonPhrase}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
-    }
-    return filename!;
-  }
-
   Future<void> downloadPDF(String fileUrl) async {
     try {
       String fileName = fileUrl.split('/').last;
@@ -648,7 +660,7 @@ class AuthController extends GetxController {
         textColor: SimtaColor.white,
         fontSize: 16.0,
       );
-      openDownloadedFile(downloadPath);
+      // openDownloadedFile(downloadPath);
 
       if (kDebugMode) {
         print(file.toString());
@@ -659,17 +671,63 @@ class AuthController extends GetxController {
       }
     }
   }
+}
 
-  void openDownloadedFile(String filePath) async {
-    final result = await OpenFile.open(filePath, type: 'application/pdf');
-    if (result.type == ResultType.done) {
-      if (kDebugMode) {
-        print('File opened successfully');
-      }
-    } else {
-      if (kDebugMode) {
-        print('Error opening file: ${result.message}');
-      }
+Future<void> sendData(
+  String message,
+  String emailsubject,
+  String emailmessage,
+  Map<String, dynamic> tanggal,
+) async {
+  SharedPreferences server = await SharedPreferences.getInstance();
+  String? idmhs = server.getString('idmhs');
+  var url = Uri.parse('http://api2.myfin.id:4000/bot/api/publishdelay');
+
+  var requestData = {
+    "receiver": idmhs,
+    "message": message,
+    "email_subject": emailsubject,
+    "email_message": emailmessage,
+    "platform": {"whatsapp": false, "telegram": true, "email": false},
+    "time": {
+      "year": tanggal['year'],
+      "month": tanggal['month'],
+      "day": tanggal['day'],
+      "hour": tanggal['hour'].toString(),
+      "minute": tanggal['minute'].toString(),
+    }
+  };
+
+  var body = json.encode(requestData);
+
+  var response = await http.post(
+    url,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': '12345678',
+      'App-auth': 'simtamobiled3tipsdku-002-1',
+    },
+    body: body,
+  );
+
+  if (response.statusCode == 200) {
+    var data = json.decode(response.body);
+    Get.back(
+      closeOverlays: true,
+    );
+    Get.snackbar(
+      "Succes",
+      "Pemberitahuan Akan Kekirim Di Telegram Anda",
+      boxShadows: [],
+      backgroundColor: Colors.green.withOpacity(0.8),
+      colorText: Colors.white,
+    );
+    return data;
+
+    // Lakukan pengolahan data sesuai kebutuhan Anda
+  } else {
+    if (kDebugMode) {
+      print('Request failed with status: ${response.statusCode}');
     }
   }
 }
@@ -681,23 +739,18 @@ Future handleAuthentication(String email, String password) async {
       password: password,
     );
   } catch (signInError) {
-    try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    UserCredential userCredential =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    // Pengguna berhasil terdaftar
+    User? user = userCredential.user;
+    if (user!.emailVerified) {
+      FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      // Pengguna berhasil terdaftar
-      User? user = userCredential.user;
-      if (user!.emailVerified) {
-        FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
-      }
-    } catch (signUpError) {
-      // Error saat pendaftaran atau masuk
-      // ...
     }
   }
 }

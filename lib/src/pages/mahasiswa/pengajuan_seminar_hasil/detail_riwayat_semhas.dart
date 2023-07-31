@@ -7,10 +7,9 @@ import 'package:get/get.dart';
 import 'package:simta1/src/model/riwayat_semhas_model.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/upload_file_provider.dart';
 import '../../../theme/simta_color.dart';
 import 'package:intl/intl.dart';
-
-import '../../../widget/widget.dart';
 
 class DetailRiwayatSemhas extends StatefulWidget {
   final RiwayatSemhasData semhas;
@@ -22,6 +21,7 @@ class DetailRiwayatSemhas extends StatefulWidget {
 
 class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
   final AuthController authController = Get.find();
+  final UploadController uploadController = Get.find();
   PlatformFile? file;
   String? newfile;
   bool isLoading = false;
@@ -33,7 +33,26 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
     DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
         int.parse(widget.semhas.jadwalSemhas));
     String formatDate = DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-    String timedate = DateFormat("HH:mm").format(parsedDateTime);
+    String jammasuk = '';
+    String jamkeluar = '';
+    //?jam mulai
+    if (widget.semhas.jamMulai.isNotEmpty) {
+      int? jamMulai = int.tryParse(widget.semhas.jamMulai);
+      if (jamMulai != null) {
+        DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.semhas.jamMulai));
+        jammasuk = DateFormat("HH:mm").format(parsedMulai);
+      }
+    }
+    //? jam selesai
+    if (widget.semhas.jamSelesai.isNotEmpty) {
+      int? jamSelesai = int.tryParse(widget.semhas.jamSelesai);
+      if (jamSelesai != null) {
+        DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+            int.parse(widget.semhas.jamSelesai));
+        jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+      }
+    }
     final appBar = AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
@@ -188,7 +207,7 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
                           height: 3,
                         ),
                         Text(
-                          '$formatDate $timedate',
+                          '$formatDate $jammasuk - $jamkeluar',
                           style: const TextStyle(
                               fontFamily: 'Open Sans',
                               fontWeight: FontWeight.w600,
@@ -219,14 +238,23 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
                         const SizedBox(
                           height: 30,
                         ),
-                        text("Upload Revisi Proposal"),
+                        const Text(
+                          'Upload Revisi Proposal',
+                          style: TextStyle(
+                              fontFamily: 'Open Sans',
+                              fontSize: 11,
+                              color: SimtaColor.grey2),
+                        ),
+                        const SizedBox(
+                          height: 3,
+                        ),
                         Padding(
                           padding: const EdgeInsets.only(
                             top: 10,
                             bottom: 10,
                           ),
                           child: RawMaterialButton(
-                            onPressed: widget.semhas.statusSh ==
+                            onPressed: widget.semhas.statusSh.toUpperCase() ==
                                         'LULUS DENGAN REVISI' &&
                                     widget.semhas.revisiProposal.isNotEmpty
                                 ? () {
@@ -248,7 +276,7 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
                                     );
                                   }
                                 : () async {
-                                    widget.semhas.statusSh !=
+                                    widget.semhas.statusSh.toUpperCase() !=
                                             'LULUS DENGAN REVISI'
                                         ? Get.snackbar(
                                             "Error",
@@ -335,7 +363,12 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
                               // uploadFile(File(file!.path!));
                               if (file == null) {
                                 Get.snackbar(
-                                    "error", "Pilih File Terlebih Dahulu");
+                                  "error",
+                                  "Pilih File Terlebih Dahulu",
+                                  boxShadows: [],
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
                               } else {
                                 submit();
                               }
@@ -393,7 +426,7 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
       });
 
       String resultfile =
-          await authController.revisiproposalFileSemhas(filepath);
+          await uploadController.revisiproposalFileSemhas(filepath);
       setState(() {
         newfile = resultfile;
       });
@@ -419,7 +452,13 @@ class _DetailRiwayatSemhasState extends State<DetailRiwayatSemhas> {
       Get.back(
         closeOverlays: true,
       );
-      Get.snackbar("Succes", "Data Behasil Diupload");
+      Get.snackbar(
+        "Succes",
+        "Data Behasil Diupload",
+        boxShadows: [],
+        backgroundColor: Colors.green.withOpacity(0.8),
+        colorText: Colors.white,
+      );
     }
   }
 }

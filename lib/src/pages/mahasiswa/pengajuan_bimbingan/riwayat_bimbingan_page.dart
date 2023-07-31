@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:simta1/src/widget/refresh_widget.dart';
 
 import '../../../providers/auth_provider.dart';
@@ -56,7 +55,7 @@ class _RiwayatBimbinganState extends State<RiwayatBimbingan> {
                 fit: BoxFit.contain),
           );
         } else {
-          final listRiwayat = riwayatController.riwayatBimbinganList;
+          RxList listRiwayat = riwayatController.riwayatBimbinganList;
           listRiwayat.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           return RefreshWidget(
@@ -87,20 +86,19 @@ class _RiwayatBimbinganState extends State<RiwayatBimbingan> {
 
                 return InkWell(
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        PageTransition(
-                          child: DetailBimbingan(bimbingan: listRiwayat[index]),
-                          type: PageTransitionType.rightToLeft,
-                          duration: const Duration(milliseconds: 400),
-                          reverseDuration: const Duration(milliseconds: 400),
-                        ));
+                    Get.to(
+                      () => DetailBimbingan(bimbingan: listRiwayat[index]),
+                      transition: Transition.rightToLeft,
+                    );
                   },
                   child: Container(
                     width: MediaQuery.of(context).size.width,
                     height: 190,
-                    margin:
-                        const EdgeInsets.only(left: 19, right: 19, bottom: 25),
+                    margin: const EdgeInsets.only(
+                      left: 19,
+                      right: 19,
+                      bottom: 25,
+                    ),
                     padding: const EdgeInsets.all(17),
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -236,8 +234,7 @@ class _RiwayatBimbinganState extends State<RiwayatBimbingan> {
                                           fontWeight: FontWeight.w500,
                                         ),
                                         child: const Center(
-                                          child:
-                                              Text(" Tambah Hasil Bimbingan"),
+                                          child: Text(" Tambah Hasil"),
                                         ),
                                       ),
                                     ),
@@ -309,7 +306,14 @@ class _RiwayatBimbinganState extends State<RiwayatBimbingan> {
                                   Get.back(
                                     closeOverlays: true,
                                   );
-                                  Get.snackbar("Succes", "Behasil Ditambahkan");
+                                  Get.snackbar(
+                                    "Succes",
+                                    "Behasil Ditambahkan",
+                                    boxShadows: [],
+                                    backgroundColor:
+                                        Colors.green.withOpacity(0.8),
+                                    colorText: Colors.white,
+                                  );
                                 }
                               }
                             },

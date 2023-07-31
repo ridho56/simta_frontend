@@ -1,4 +1,4 @@
-// To parse this JSON data, do
+// To parse this JSON PengajuanBimbinganData, do
 //
 //     final pengajuanBimbinganModel = pengajuanBimbinganModelFromJson(jsonString);
 
@@ -13,7 +13,7 @@ String pengajuanBimbinganModelToJson(PengajuanBimbinganModel data) =>
 class PengajuanBimbinganModel {
   int code;
   String status;
-  Data data;
+  PengajuanBimbinganData data;
 
   PengajuanBimbinganModel({
     required this.code,
@@ -25,7 +25,7 @@ class PengajuanBimbinganModel {
       PengajuanBimbinganModel(
         code: json["code"],
         status: json["status"],
-        data: Data.fromJson(json["data"]),
+        data: PengajuanBimbinganData.fromJson(json["data"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -35,7 +35,7 @@ class PengajuanBimbinganModel {
       };
 }
 
-class Data {
+class PengajuanBimbinganData {
   int idBimbingan;
   String idMhs;
   String idStaf;
@@ -46,7 +46,7 @@ class Data {
   String statusAjuan;
   String createdAt;
 
-  Data({
+  PengajuanBimbinganData({
     required this.idBimbingan,
     required this.idMhs,
     required this.idStaf,
@@ -58,7 +58,8 @@ class Data {
     required this.createdAt,
   });
 
-  factory Data.fromJson(Map<String, dynamic> json) => Data(
+  factory PengajuanBimbinganData.fromJson(Map<String, dynamic> json) =>
+      PengajuanBimbinganData(
         idBimbingan: json["id_bimbingan"],
         idMhs: json["id_mhs"],
         idStaf: json["id_Staf"],

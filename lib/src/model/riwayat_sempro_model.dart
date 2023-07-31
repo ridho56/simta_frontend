@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'penguji_ujian_proposal_model.dart';
+
 RiwayatSemproModel riwayatSemproModelFromJson(String str) =>
     RiwayatSemproModel.fromJson(json.decode(str));
 
@@ -52,6 +54,7 @@ class RiwayatSemproData {
   String statusUp;
   String catatan;
   String createdAt;
+  List<DataPengujiUjianProposal> pengujiList;
 
   RiwayatSemproData({
     required this.idUjianproposal,
@@ -69,6 +72,7 @@ class RiwayatSemproData {
     required this.statusUp,
     required this.catatan,
     required this.createdAt,
+    required this.pengujiList,
   });
 
   factory RiwayatSemproData.fromJson(Map<String, dynamic> json) =>
@@ -88,6 +92,7 @@ class RiwayatSemproData {
         statusUp: json["status_up"],
         catatan: json["catatan"],
         createdAt: json["created_at"],
+        pengujiList: [],
       );
 
   Map<String, dynamic> toJson() => {

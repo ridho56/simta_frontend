@@ -27,54 +27,57 @@ pleaseWait(BuildContext context) {
 Future showprogess(context) async {
   return showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-            title: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: <Widget>[
-                Column(
-                  children: [
-                    Container(
-                      width: 196,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(20, 160, 20, 10),
-                      child: const Text(
-                        "Berhasil",
-                        style: TextStyle(
-                            fontSize: 25,
-                            fontFamily: 'Poppins',
-                            color: Color.fromRGBO(53, 80, 112, 1)),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Row(children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (kDebugMode) {
-                              print('yes selected');
-                            }
-                            Get.offNamed("/navigation");
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade800),
-                          child: const Text("OK"),
+      builder: (context) => WillPopScope(
+            onWillPop: () async => false,
+            child: AlertDialog(
+              title: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: <Widget>[
+                  Column(
+                    children: [
+                      Container(
+                        width: 196,
+                        height: 220,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(20, 160, 20, 10),
+                        child: const Text(
+                          "Berhasil",
+                          style: TextStyle(
+                              fontSize: 25,
+                              fontFamily: 'Poppins',
+                              color: Color.fromRGBO(53, 80, 112, 1)),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ]),
-                  ],
-                ),
-                Positioned(
-                  top: -10,
-                  child: Lottie.network(
-                      'https://assets9.lottiefiles.com/packages/lf20_tnlxlkom.json',
-                      width: 180,
-                      height: 170),
-                ),
-              ],
+                      Row(children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (kDebugMode) {
+                                print('yes selected');
+                              }
+                              Get.offNamed("/navigation");
+                            },
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade800),
+                            child: const Text("OK"),
+                          ),
+                        ),
+                      ]),
+                    ],
+                  ),
+                  Positioned(
+                    top: -10,
+                    child: Lottie.network(
+                        'https://assets9.lottiefiles.com/packages/lf20_tnlxlkom.json',
+                        width: 180,
+                        height: 170),
+                  ),
+                ],
+              ),
             ),
           ));
 }

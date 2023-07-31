@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-Future<bool> showExitPopup(context) async{
+Future<bool> showExitPopup(context) async {
   return await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -22,7 +23,7 @@ Future<bool> showExitPopup(context) async{
                           if (kDebugMode) {
                             print('yes selected');
                           }
-                          SystemNavigator.pop();
+                          exit(0);
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red.shade800),
@@ -32,17 +33,18 @@ Future<bool> showExitPopup(context) async{
                     const SizedBox(width: 15),
                     Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            if (kDebugMode) {
-                              print('no selected');
-                            }
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                          ),
-                          child: const Text("No", style: TextStyle(color: Colors.black)),
-                        ))
+                      onPressed: () {
+                        if (kDebugMode) {
+                          print('no selected');
+                        }
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
+                      child: const Text("No",
+                          style: TextStyle(color: Colors.black)),
+                    ))
                   ],
                 )
               ],

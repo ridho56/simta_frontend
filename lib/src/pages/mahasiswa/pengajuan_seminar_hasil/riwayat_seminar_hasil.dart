@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'package:page_transition/page_transition.dart';
 
 import '../../../providers/riwayat_provider.dart';
 import '../../../theme/simta_color.dart';
@@ -222,16 +221,10 @@ class _RiwayatSeminarHasilState extends State<RiwayatSeminarHasil> {
                               left: 19, right: 19, bottom: 25),
                           child: InkWell(
                             onTap: () {
-                              Navigator.push(
-                                  context,
-                                  PageTransition(
-                                    child: DetailRiwayatSemhas(
-                                        semhas: listRiwayat),
-                                    type: PageTransitionType.rightToLeft,
-                                    duration: const Duration(milliseconds: 400),
-                                    reverseDuration:
-                                        const Duration(milliseconds: 400),
-                                  ));
+                              Get.to(
+                                () => DetailRiwayatSemhas(semhas: listRiwayat),
+                                transition: Transition.rightToLeft,
+                              );
                             },
                             child: Fieldditerima(
                               judul: "Pengajuan Jadwal Seminar Hasil",

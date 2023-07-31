@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
-import 'package:page_transition/page_transition.dart';
 import 'package:simta1/src/widget/refresh_widget.dart';
 import '../../../providers/riwayat_provider.dart';
 import '../../../theme/simta_color.dart';
@@ -63,8 +62,6 @@ class _RiwayatSeminarState extends State<RiwayatSeminar> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: listRiwayat.length,
                 itemBuilder: (BuildContext context, int index) {
-                  final listpenguji =
-                      riwayatController.pengujiUjianProposalList;
                   final listRiwayat =
                       riwayatController.riwayatSemproList[index];
                   DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
@@ -222,28 +219,22 @@ class _RiwayatSeminarState extends State<RiwayatSeminar> {
                               left: 19, right: 19, bottom: 25),
                           child: InkWell(
                             onTap: () {
-                              Navigator.push(
-                                  context,
-                                  PageTransition(
-                                    child: DetailRiwayatSeminar(
-                                        sempro: listRiwayat),
-                                    type: PageTransitionType.rightToLeft,
-                                    duration: const Duration(milliseconds: 400),
-                                    reverseDuration:
-                                        const Duration(milliseconds: 400),
-                                  ));
+                              Get.to(
+                                  () =>
+                                      DetailRiwayatSeminar(sempro: listRiwayat),
+                                  transition: Transition.rightToLeft);
                             },
-                            child: Fieldditerima(
-                              judul: "Pengajuan Jadwal Seminar Proposal",
-                              tanggal: formatDate,
-                              jam: '$jammasuk - $jamkeluar',
-                              statusAjuan:
-                                  listRiwayat.statusAjuan.toUpperCase(),
-                              ruangan: listRiwayat.ruangSempro,
-                              pengujilist: listpenguji
-                                  .map((penguji) => penguji.namaPenguji)
-                                  .toList(),
-                            ),
+                            child: listRiwayat.statusUp.toLowerCase() == "gagal"
+                                ? Container()
+                                : Fieldditerima(
+                                    judul: "Pengajuan Jadwal Seminar Proposal",
+                                    tanggal: formatDate,
+                                    jam: '$jammasuk - $jamkeluar',
+                                    statusAjuan:
+                                        listRiwayat.statusAjuan.toUpperCase(),
+                                    ruangan: listRiwayat.ruangSempro,
+                                    pengujilist: listRiwayat.pengujiList,
+                                  ),
                           ),
                         );
                 },

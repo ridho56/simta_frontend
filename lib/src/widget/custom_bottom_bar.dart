@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
-class CustomAnimatedBottomBar extends StatelessWidget {
+import '../theme/simta_color.dart';
 
+class CustomAnimatedBottomBar extends StatelessWidget {
   const CustomAnimatedBottomBar({
     Key? key,
     this.selectedIndex = 0,
@@ -17,7 +19,7 @@ class CustomAnimatedBottomBar extends StatelessWidget {
     required this.items,
     required this.onItemSelected,
     this.curve = Curves.linear,
-  }) : assert(items.length >= 2 && items.length <= 5),
+  })  : assert(items.length >= 2 && items.length <= 5),
         super(key: key);
 
   final int selectedIndex;
@@ -94,7 +96,7 @@ class _ItemWidget extends StatelessWidget {
     required this.itemCornerRadius,
     required this.iconSize,
     this.curve = Curves.linear,
-  })  : super(key: key);
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +110,7 @@ class _ItemWidget extends StatelessWidget {
         curve: curve,
         decoration: BoxDecoration(
           color:
-          isSelected ? item.activeColor.withOpacity(0.2) : backgroundColor,
+              isSelected ? item.activeColor.withOpacity(0.2) : backgroundColor,
           borderRadius: BorderRadius.circular(itemCornerRadius),
         ),
         child: SingleChildScrollView(
@@ -154,8 +156,8 @@ class _ItemWidget extends StatelessWidget {
     );
   }
 }
-class BottomNavyBarItem {
 
+class BottomNavyBarItem {
   BottomNavyBarItem({
     required this.icon,
     required this.title,
@@ -169,5 +171,97 @@ class BottomNavyBarItem {
   final Color activeColor;
   final Color? inactiveColor;
   final TextAlign? textAlign;
+}
 
+class ButtonUploadAndPick extends StatelessWidget {
+  const ButtonUploadAndPick({
+    Key? key,
+    this.onpresed,
+    this.isLoading = false,
+    this.visible = false,
+    this.file,
+  }) : super(key: key);
+
+  final void Function()? onpresed;
+  final bool isLoading;
+  final bool visible;
+  final PlatformFile? file;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            top: 10,
+            bottom: 10,
+          ),
+          child: RawMaterialButton(
+            onPressed: onpresed,
+            constraints: BoxConstraints(
+                minHeight: 49, minWidth: MediaQuery.of(context).size.width),
+            shape: RoundedRectangleBorder(
+              side: const BorderSide(
+                color: SimtaColor.birubar,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            textStyle: const TextStyle(
+              color: SimtaColor.birubar,
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+            child: const Text("Pilih File"),
+          ),
+        ),
+        //* file pdf
+        file == null
+            ? Container()
+            : isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Visibility(
+                    visible: visible,
+                    child: Container(
+                      padding: const EdgeInsets.only(bottom: 30),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/jpg/image 1.png',
+                            width: 34,
+                            height: 34,
+                            // color: Colors.transparent,
+                          ),
+                          const SizedBox(
+                            width: 15,
+                          ),
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    file != null ? file!.name : "",
+                                    style: const TextStyle(
+                                      color: SimtaColor.black,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.check_circle,
+                                  size: 34,
+                                  color: SimtaColor.green,
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  )
+      ],
+    );
+  }
 }

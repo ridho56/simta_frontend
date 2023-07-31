@@ -1,7 +1,6 @@
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages, deprecated_member_use
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,7 +16,6 @@ import 'package:provider/provider.dart';
 import '../../providers/check_rovider.dart';
 import '../../theme/simta_color.dart';
 import '../../widget/data_cache.dart';
-import 'account.dart';
 import '../../widget/alert.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -29,7 +27,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final LocalAuthentication auth = LocalAuthentication();
-  _SupportState _supportState = _SupportState.unknown;
   XFile? _profile;
   final picker = ImagePicker();
   CroppedFile? _croppedFile;
@@ -40,13 +37,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     getUserData();
-    auth.isDeviceSupported().then(
-          (bool isSupported) => setState(
-            () => _supportState = isSupported
-                ? _SupportState.supported
-                : _SupportState.unsupported,
-          ),
-        );
   }
 
   void _showPicker(context) {
@@ -100,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_profile != null) {
       final croppedFile = await ImageCropper().cropImage(
         sourcePath: _profile!.path,
-        compressFormat: ImageCompressFormat.jpg,
+        compressFormat: ImageCompressFormat.png,
         compressQuality: 100,
         uiSettings: [
           AndroidUiSettings(
@@ -343,8 +333,8 @@ class _ProfilePageState extends State<ProfilePage> {
               //Akun & Keamanan
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
+                children: const [
+                  Text(
                     "Akun & Keamanan",
                     style: TextStyle(
                       fontFamily: 'Poppins',
@@ -352,96 +342,61 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(
+                  SizedBox(
                     height: 15,
                   ),
-                  InkWell(
-                    onTap: () {},
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            SvgPicture.asset("assets/svg/key.svg",
-                                height: 26, width: 26),
-                            const SizedBox(
-                              width: 21,
-                            ),
-                            const Text(
-                              "Ubah Kata Sandi",
-                              style: TextStyle(
-                                  fontFamily: 'OpenSans', fontSize: 15),
-                            ),
-                            const Spacer(),
-                            SvgPicture.asset(
-                              'assets/svg/Arrow_right.svg',
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                        const Divider(
-                          color: Color(0xffE3E3FE),
-                          height: 14,
-                          thickness: 1,
-                          indent: 44,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
-                  InkWell(
-                    onTap: () {
-                      if (_supportState == _SupportState.supported) {
-                        Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                            builder: ((context) => const Account()),
-                          ),
-                        );
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => const AlertDialog(
-                            title:
-                                Text("Your device is not supported biometric"),
-                          ),
-                        );
-                        return;
-                      }
-                    },
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.fingerprint_outlined),
-                            const SizedBox(
-                              width: 21,
-                            ),
-                            const Text(
-                              "Login Dengan Biometric",
-                              style: TextStyle(
-                                  fontFamily: 'OpenSans', fontSize: 15),
-                            ),
-                            const Spacer(),
-                            SvgPicture.asset(
-                              'assets/svg/Arrow_right.svg',
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                        const Divider(
-                          color: Color(0xffE3E3FE),
-                          height: 14,
-                          thickness: 1,
-                          indent: 44,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 4,
-                  ),
+                  // InkWell(
+                  //   onTap: () {
+                  //     if (_supportState == _SupportState.supported) {
+                  //       Navigator.push(
+                  //         context,
+                  //         CupertinoPageRoute(
+                  //           builder: ((context) => const Account()),
+                  //         ),
+                  //       );
+                  //     } else {
+                  //       showDialog(
+                  //         context: context,
+                  //         builder: (ctx) => const AlertDialog(
+                  //           title:
+                  //               Text("Your device is not supported biometric"),
+                  //         ),
+                  //       );
+                  //       return;
+                  //     }
+                  //   },
+                  //   child: Column(
+                  //     children: [
+                  //       Row(
+                  //         children: [
+                  //           const Icon(Icons.fingerprint_outlined),
+                  //           const SizedBox(
+                  //             width: 21,
+                  //           ),
+                  //           const Text(
+                  //             "Login Dengan Biometric",
+                  //             style: TextStyle(
+                  //                 fontFamily: 'OpenSans', fontSize: 15),
+                  //           ),
+                  //           const Spacer(),
+                  //           SvgPicture.asset(
+                  //             'assets/svg/Arrow_right.svg',
+                  //             color: Colors.black,
+                  //           ),
+                  //         ],
+                  //       ),
+                  //       const Divider(
+                  //         color: Color(0xffE3E3FE),
+                  //         height: 14,
+                  //         thickness: 1,
+                  //         indent: 44,
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+                  // const SizedBox(
+                  //   height: 4,
+                  // ),
                 ],
               ),
               Column(
@@ -461,9 +416,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   InkWell(
                     onTap: () {
-                      Provider.of<CheckProvider>(context, listen: false)
-                          .logout();
-                      Get.offAllNamed("/login");
+                      Get.offAllNamed("/login",
+                          arguments:
+                              Provider.of<CheckProvider>(context, listen: false)
+                                  .logout());
                     },
                     child: Column(
                       children: [
@@ -503,10 +459,4 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-}
-
-enum _SupportState {
-  unknown,
-  supported,
-  unsupported,
 }

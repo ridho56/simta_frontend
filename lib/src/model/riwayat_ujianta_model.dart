@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'penguji_ujianta_model.dart';
+
 RiwayatUjianTaModel riwayatUjianTaModelFromJson(String str) =>
     RiwayatUjianTaModel.fromJson(json.decode(str));
 
@@ -52,6 +54,7 @@ class RiwayatUjianTaData {
   String statusUt;
   String catatan;
   String createdAt;
+  List<DatapengujiUjianTa> pengujiList;
 
   RiwayatUjianTaData({
     required this.idUjianta,
@@ -69,6 +72,7 @@ class RiwayatUjianTaData {
     required this.statusUt,
     required this.catatan,
     required this.createdAt,
+    required this.pengujiList,
   });
 
   factory RiwayatUjianTaData.fromJson(Map<String, dynamic> json) =>
@@ -88,6 +92,7 @@ class RiwayatUjianTaData {
         statusUt: json["status_ut"],
         catatan: json["catatan"],
         createdAt: json["created_at"],
+        pengujiList: [],
       );
 
   Map<String, dynamic> toJson() => {

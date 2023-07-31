@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,9 +8,6 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simta1/src/widget/exitalert.dart';
 
-import '../../widget/alert.dart';
-import '../../widget/auth.dart';
-import '../../widget/db_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/simta_color.dart';
 
@@ -27,8 +23,8 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController emailcontroller = TextEditingController();
   TextEditingController passcontroller = TextEditingController();
   final LocalAuthentication auth = LocalAuthentication();
-  _SupportState _supportState = _SupportState.unknown;
-  late Timer _timer;
+  // _SupportState _supportState = _SupportState.unknown;
+  // late Timer _timer;
 
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
@@ -47,17 +43,17 @@ class _LoginPageState extends State<LoginPage> {
     return regex.hasMatch(email);
   }
 
-  @override
-  void initState() {
-    super.initState();
-    auth.isDeviceSupported().then(
-          (bool isSupported) => setState(
-            () => _supportState = isSupported
-                ? _SupportState.supported
-                : _SupportState.unsupported,
-          ),
-        );
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   auth.isDeviceSupported().then(
+  //         (bool isSupported) => setState(
+  //           () => _supportState = isSupported
+  //               ? _SupportState.supported
+  //               : _SupportState.unsupported,
+  //         ),
+  //       );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -104,8 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                                 return 'Please enter your email/username';
                               } else if (!value.contains("@")) {
                                 return null;
-                              } else if (!isStudentEmail(value) &&
-                                  !isStaffEmail(value)) {
+                              } else if (!isStudentEmail(value)) {
                                 return 'Please enter a valid staff or student email';
                               }
                               return null;
@@ -177,7 +172,7 @@ class _LoginPageState extends State<LoginPage> {
                             ? null
                             : () {
                                 _submit(context);
-                                resetTimer;
+                                // resetTimer;
                               },
                         fillColor: SimtaColor.biruback,
                         constraints:
@@ -201,68 +196,69 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(
                     height: 20,
                   ),
-                  if (_supportState == _SupportState.unknown)
-                    Container()
-                  else if (_supportState == _SupportState.supported)
-                    Theme(
-                      data: Theme.of(context)
-                          .copyWith(canvasColor: Colors.transparent),
-                      child: _supportState == _SupportState.unsupported
-                          ? Container()
-                          : FadeInUp(
-                              delay: const Duration(milliseconds: 1500),
-                              child: IconButton(
-                                iconSize: 50,
-                                icon: const Icon(
-                                  Icons.fingerprint,
-                                  size: 50,
-                                  color: Color(0xff0A6DED),
-                                ),
-                                onPressed: () {
-                                  DbProvider()
-                                      .getAuthState()
-                                      .then((value) async {
-                                    final prefs =
-                                        await SharedPreferences.getInstance();
-                                    final token = prefs.getString('jwtToken');
+                  // if (_supportState == _SupportState.unknown)
+                  //   Container()
+                  // else if (_supportState == _SupportState.supported)
+                  //   Theme(
+                  //     data: Theme.of(context)
+                  //         .copyWith(canvasColor: Colors.transparent),
+                  //     child: _supportState == _SupportState.unsupported
+                  //         ? Container()
+                  //         : FadeInUp(
+                  //             delay: const Duration(milliseconds: 1500),
+                  //             child: IconButton(
+                  //               iconSize: 50,
+                  //               icon: const Icon(
+                  //                 Icons.fingerprint,
+                  //                 size: 50,
+                  //                 color: Color(0xff0A6DED),
+                  //               ),
+                  //               onPressed: () {
+                  //                 DbProvider()
+                  //                     .getAuthState()
+                  //                     .then((value) async {
+                  //                   if (value == false) {
+                  //                     showDialog(
+                  //                       context: context,
+                  //                       builder: (ctx) => const AlertDialog(
+                  //                         title: Text("Biometric Belum Aktif"),
+                  //                       ),
+                  //                     );
+                  //                     return null;
+                  //                   } else {
+                  //                     CheckProvider checkProvider =
+                  //                         Provider.of<CheckProvider>(context,
+                  //                             listen: false);
+                  //                     if (checkProvider.isValidToken) {
+                  //                       Get.snackbar(
+                  //                         "Pesan!",
+                  //                         "Token sudah habis Silakan Login Ulang",
+                  //                         boxShadows: [],
+                  //                       );
+                  //                     } else {
+                  //                       isAuthenticated =
+                  //                           await AuthService.authenticateUser(
+                  //                               value);
 
-                                    if (value == false) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (ctx) => const AlertDialog(
-                                          title: Text("Biometric Belum Aktif"),
-                                        ),
-                                      );
-                                      return null;
-                                    } else if (token == null) {
-                                      Get.snackbar(
-                                          "Alert", "Silakan Login Ulang");
-                                    } else {
-                                      isAuthenticated =
-                                          await AuthService.authenticateUser(
-                                              value);
+                  //                       if (isAuthenticated) {
+                  //                         checkProvider.isValidToken == true;
 
-                                      if (isAuthenticated) {
-                                        pleaseWait(context);
-                                        Future.delayed(
-                                            const Duration(seconds: 2), () {
-                                          Get.offNamed("/navigation");
-                                          Get.snackbar(
-                                            "Berhasil",
-                                            "Anda Berhasil Login",
-                                            boxShadows: [],
-                                          );
-                                        });
-                                      } else {
-                                        Get.snackbar(
-                                            "Alert", "Silakan Login Ulang");
-                                      }
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                    )
+                  //                         Get.offNamed(
+                  //                           "/navigation",
+                  //                           arguments: Get.snackbar(
+                  //                             "Berhasil",
+                  //                             "Anda Berhasil Login",
+                  //                             boxShadows: [],
+                  //                           ),
+                  //                         );
+                  //                       }
+                  //                     }
+                  //                   }
+                  //                 });
+                  //               },
+                  //             ),
+                  //           ),
+                  //   )
                 ],
               ),
             ),
@@ -284,12 +280,15 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (loginBaru == true) {
-        await handleAuthentication(emailcontroller.text, passcontroller.text);
-        Get.offNamed("/navigation");
-        Get.snackbar(
-          "Berhasil",
-          "Anda Berhasil Login",
-          boxShadows: [],
+        Get.offNamed(
+          "/navigation",
+          arguments: Get.snackbar(
+            "Berhasil",
+            "Anda Berhasil Login",
+            boxShadows: [],
+            backgroundColor: Colors.green.withOpacity(0.8),
+            colorText: Colors.white,
+          ),
         );
       } else {
         SharedPreferences server = await SharedPreferences.getInstance();
@@ -298,6 +297,8 @@ class _LoginPageState extends State<LoginPage> {
           "Gagal",
           pass!,
           boxShadows: [],
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
         );
       }
       if (mounted) {
@@ -307,20 +308,4 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
   }
-
-  void resetTimer() {
-    _timer.cancel();
-    _timer = Timer(const Duration(minutes: 1),
-        logoutUser); // Set timeout duration and call logoutUser when timeout expires
-  }
-}
-
-void logoutUser() {
-  Get.offAllNamed('/login');
-}
-
-enum _SupportState {
-  unknown,
-  supported,
-  unsupported,
 }

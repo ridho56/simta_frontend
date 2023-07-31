@@ -1,13 +1,18 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../providers/auth_provider.dart';
+import '../../../providers/riwayat_provider.dart';
+import '../../../providers/upload_file_provider.dart';
 import '../../../theme/simta_color.dart';
 import '../../../widget/alert.dart';
+import '../../../widget/custom_bottom_bar.dart';
+import '../../../widget/pick_file.dart';
 import '../../../widget/widget.dart';
 
 class PengajuanSeminar extends StatefulWidget {
@@ -19,15 +24,18 @@ class PengajuanSeminar extends StatefulWidget {
 
 class _PengajuanSeminarState extends State<PengajuanSeminar> {
   final AuthController authController = Get.find();
+  final RiwayatController riwayatController = Get.find();
+  final UploadController uploadController = Get.find();
   TextEditingController tanggalController = TextEditingController();
   TextEditingController judulController = TextEditingController();
   TextEditingController abstrakController = TextEditingController();
-  PlatformFile? file;
-  String? newfile;
+  PlatformFile? proposalawal;
+  // PlatformFile? transkripnilai;
   final _formKey = GlobalKey<FormState>();
   late int datemillis;
   bool visible = false;
   bool isLoading = false;
+  bool loading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +75,23 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
                     },
                     padding: const EdgeInsets.only(right: 10),
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: SimtaColor.birubar,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.red,
+                    ),
                   ),
                   hintText: 'Pilih Tanggal',
                 ),
@@ -95,8 +118,29 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
                 },
                 showCursor: true,
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.red,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: SimtaColor.birubar,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.red,
+                    ),
                   ),
                   hintText: 'Maksimal 15 Kalimat',
                 ),
@@ -120,8 +164,29 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
                 },
                 showCursor: true,
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.red,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: SimtaColor.birubar,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(
+                      color: Colors.red,
+                    ),
                   ),
                   hintText: 'Tuliskan abstrak proposal anda',
                 ),
@@ -129,86 +194,36 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
               const SizedBox(
                 height: 20,
               ),
-              text("Upload Proposal"),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                ),
-                child: RawMaterialButton(
-                  onPressed: () async {
-                    file = await pickFile();
-                    // final filepath = File(file!.path!);
-                    if (file != null) {
-                      setState(() {
-                        visible = true;
-                      });
-                    }
-                  },
-                  constraints: BoxConstraints(
-                      minHeight: 49,
-                      minWidth: MediaQuery.of(context).size.width),
-                  shape: RoundedRectangleBorder(
-                    side: const BorderSide(
-                      color: SimtaColor.birubar,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: const TextStyle(
-                    color: SimtaColor.birubar,
-                    fontFamily: 'Poppins',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  child: const Text("Pilih File"),
-                ),
-              ),
-              //* file pdf
-              isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : Visibility(
-                      visible: visible,
-                      child: Container(
-                        padding: const EdgeInsets.only(bottom: 40),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/jpg/image 1.png',
-                              width: 34,
-                              height: 34,
-                              // color: Colors.transparent,
-                            ),
-                            const SizedBox(
-                              width: 15,
-                            ),
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      file != null ? file!.name : "",
-                                      style: const TextStyle(
-                                        color: SimtaColor.black,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.check_circle,
-                                    size: 34,
-                                    color: SimtaColor.green,
-                                  )
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
+              text("Upload Proposal(.pdf)"),
+              ButtonUploadAndPick(
+                isLoading: isLoading,
+                visible: visible,
+                onpresed: () async {
+                  proposalawal = await pickFileandUpload();
 
+                  if (proposalawal != null) {
+                    setState(() {
+                      visible = true;
+                    });
+                  }
+                },
+                file: proposalawal,
+              ),
+              // text("Transkrip Nilai(.pdf)"),
+              // ButtonUploadAndPick(
+              //   isLoading: isLoading,
+              //   visible: visible,
+              //   file: transkripnilai,
+              //   onpresed: () async {
+              //     transkripnilai = await pickFileandUpload();
+              //     // final filepath = File(file!.path!);
+              //     if (transkripnilai != null) {
+              //       setState(() {
+              //         visible = true;
+              //       });
+              //     }
+              //   },
+              // ),
               //!test
               //text("download Proposal"),
               // Padding(
@@ -245,16 +260,30 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
 
               Padding(
                 padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
+                  bottom: 20,
                 ),
                 child: RawMaterialButton(
-                  onPressed: () async {
-                    // uploadFile(File(file!.path!));
-                    if (file == null) {
-                      Get.snackbar("error", "Pilih File Terlebih Dahulu");
+                  onPressed: () {
+                    if (riwayatController.riwayatSemproList.isNotEmpty &&
+                        riwayatController.riwayatSemproList.first.statusAjuan
+                                .toLowerCase() ==
+                            'pending') {
+                      Get.snackbar(
+                          "Pesan", "Status Ajuan Sebelumnya Masih Pending");
+                    } else if (loading) {
+                      return;
                     } else {
-                      submit();
+                      if (proposalawal == null) {
+                        Get.snackbar(
+                          "Error",
+                          "Pilih File Terlebih Dahulu",
+                          boxShadows: [],
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      } else {
+                        submit();
+                      }
                     }
                   },
                   fillColor: SimtaColor.birubar,
@@ -270,7 +299,13 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
                   ),
-                  child: const Text("Submit"),
+                  child: loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            backgroundColor: SimtaColor.white,
+                          ),
+                        )
+                      : const Text("Submit"),
                 ),
               ),
             ],
@@ -296,57 +331,35 @@ class _PengajuanSeminarState extends State<PengajuanSeminar> {
     }
   }
 
-  Future<PlatformFile?> pickFile() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result != null && result.files.isNotEmpty) {
-      file = result.files.first;
-
-      uploadFile(file!.path!);
-      if (kDebugMode) {
-        print(file!.path);
-      }
-    } else {
-      Get.snackbar("Error", "Digagalkan Oleh Penggguna");
-    }
-    return file;
-  }
-
-  Future uploadFile(String filepath) async {
-    try {
-      setState(() {
-        isLoading = true;
-      });
-
-      String resultfile = await authController.uploadFileSempro(filepath);
-
-      setState(() {
-        newfile = resultfile;
-        isLoading = false;
-      });
-      return;
-    } catch (e) {
-      if (kDebugMode) {
-        print("Terjadi kesalahan saat mengunggah file PDF: $e");
-      }
-      return null;
-    }
-  }
-
   void submit() async {
     if (_formKey.currentState!.validate()) {
-      bool sempro = await authController.pengajuanSempro(
-        datemillis.toString(),
-        judulController.text,
-        abstrakController.text,
-        newfile!,
-      );
+      setState(() {
+        loading = true;
+      });
 
-      if (sempro == true) {
-        showprogess(context);
+      String proposalname = await PickAndUpload().uploadFilePDF(
+        uploadController.uploadFileSempro(proposalawal!.path!),
+        isLoading,
+      );
+      // String transkripname = await PickAndUpload().uploadFilePDF(
+      //   uploadController.uploadTranskripNilaiSempro(transkripnilai!.path!),
+      //   isLoading,
+      // );
+      if (proposalname.isNotEmpty) {
+        bool sempro = await authController.pengajuanSempro(
+          datemillis.toString(),
+          judulController.text,
+          abstrakController.text,
+          proposalname,
+        );
+
+        if (sempro == true) {
+          showprogess(context);
+        }
       }
+      setState(() {
+        loading = false;
+      });
     }
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
+import 'package:simta1/src/model/riwayat_judul_model.dart';
+
 import 'package:simta1/src/model/riwayat_semhas_model.dart';
 import 'package:simta1/src/providers/riwayat_provider.dart';
 
@@ -7,8 +10,6 @@ import '../model/riwayat_bimbingan_model.dart';
 import '../model/riwayat_sempro_model.dart';
 import '../model/riwayat_ujianta_model.dart';
 import '../theme/simta_color.dart';
-import 'package:intl/intl.dart';
-import 'alert.dart';
 import 'dataditerima.dart';
 
 Widget text(String text) {
@@ -72,6 +73,11 @@ Widget conButton(BuildContext context, String text) {
 }
 
 Widget notification(BuildContext context, RiwayatController riwayatController) {
+  List listRiwayatJudul = riwayatController.riwayatJudulList
+      .where((riwayat) =>
+          riwayat.statusPj != 'diajukan' && riwayat.statusPj != "ditolak")
+      .toList();
+
   List listRiwayat = riwayatController.riwayatBimbinganList
       .where((riwayat) => riwayat.statusAjuan == 'diterima')
       .toList();
@@ -88,6 +94,7 @@ Widget notification(BuildContext context, RiwayatController riwayatController) {
   List combinedList = [];
 
   // Menggabungkan data riwayat
+  combinedList.addAll(listRiwayatJudul);
   combinedList.addAll(listRiwayat);
   combinedList.addAll(listRiwayatSempro);
   combinedList.addAll(listRiwayatSemhas);
@@ -97,19 +104,20 @@ Widget notification(BuildContext context, RiwayatController riwayatController) {
   combinedList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
   // Mengambil data terbaru
+
   dynamic latestRiwayat = combinedList.isNotEmpty ? combinedList.first : null;
-  if (riwayatController.isLoading.value) {
-    return Container(
-      margin: const EdgeInsets.only(left: 19, right: 19, bottom: 25),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          shimmer(height: 190, width: MediaQuery.of(context).size.width),
-        ],
-      ),
-    );
-  } else if (latestRiwayat != null) {
-    if (latestRiwayat is DataRiwayatBim) {
+  if (latestRiwayat != null) {
+    if (latestRiwayat is DataPengajuanJudul) {
+      DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
+          int.parse(latestRiwayat.createdAt));
+      String formatDate =
+          DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
+      return pengajuanJudul(
+        context,
+        formatDate,
+        latestRiwayat.statusPj,
+      );
+    } else if (latestRiwayat is DataRiwayatBim) {
       // Tampilkan data riwayat bimbingan
       DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
           int.parse(latestRiwayat.jadwalBim));
@@ -125,67 +133,106 @@ Widget notification(BuildContext context, RiwayatController riwayatController) {
         ruangan: latestRiwayat.ruangBim,
       );
     } else if (latestRiwayat is RiwayatSemproData) {
-      final listPengujiProposal =
-          riwayatController.pengujiUjianProposalList.toList();
       // Tampilkan data riwayat sempro
       DateTime parsedDateTime =
           DateTime.fromMillisecondsSinceEpoch(int.parse(latestRiwayat.tanggal));
-      DateTime jammasuk = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamMulai));
-      DateTime jamselesai = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamSelesai));
+      String jammasuk = '';
+      String jamkeluar = '';
+      //? jam masuk
+      if (latestRiwayat.jamMulai.isNotEmpty) {
+        int? jamMulai = int.tryParse(latestRiwayat.jamMulai);
+        if (jamMulai != null) {
+          DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamMulai));
+          jammasuk = DateFormat("HH:mm").format(parsedMulai);
+        }
+      }
+      //? jam keluar
+      if (latestRiwayat.jamSelesai.isNotEmpty) {
+        int? jamSelesai = int.tryParse(latestRiwayat.jamSelesai);
+        if (jamSelesai != null) {
+          DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamSelesai));
+          jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+        }
+      }
       String formatDate =
           DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-      String jammulai = DateFormat("HH:mm").format(jammasuk);
-      String jamkeluar = DateFormat("HH:mm").format(jamselesai);
 
-      return Fieldditerima(
-        judul: "Pengajuan Jadwal Seminar Proposal",
-        tanggal: formatDate,
-        jam: '$jammulai - $jamkeluar',
-        statusAjuan: latestRiwayat.statusAjuan,
-        ruangan: latestRiwayat.ruangSempro,
-        pengujilist:
-            listPengujiProposal.map((penguji) => penguji.namaPenguji).toList(),
-      );
+      return latestRiwayat.statusUp.toLowerCase() == 'gagal'
+          ? Container()
+          : Fieldditerima(
+              judul: "Pengajuan Jadwal Seminar Proposal",
+              tanggal: formatDate,
+              jam: '$jammasuk - $jamkeluar',
+              statusAjuan: latestRiwayat.statusAjuan,
+              ruangan: latestRiwayat.ruangSempro,
+              pengujilist: latestRiwayat.pengujiList,
+            );
     } else if (latestRiwayat is RiwayatUjianTaData) {
-      final listPengujiTa = riwayatController.pengujiUjianTalList.toList();
-
       DateTime parsedDateTime =
           DateTime.fromMillisecondsSinceEpoch(int.parse(latestRiwayat.tanggal));
-      DateTime jammasuk = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamMulai));
-      DateTime jamselesai = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamSelesai));
+      String jammasuk = '';
+      String jamkeluar = '';
+      //? jam masuk
+      if (latestRiwayat.jamMulai.isNotEmpty) {
+        int? jamMulai = int.tryParse(latestRiwayat.jamMulai);
+        if (jamMulai != null) {
+          DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamMulai));
+          jammasuk = DateFormat("HH:mm").format(parsedMulai);
+        }
+      }
+      //? jam keluar
+      if (latestRiwayat.jamSelesai.isNotEmpty) {
+        int? jamSelesai = int.tryParse(latestRiwayat.jamSelesai);
+        if (jamSelesai != null) {
+          DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamSelesai));
+          jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+        }
+      }
       String formatDate =
           DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-      String jammulai = DateFormat("HH:mm").format(jammasuk);
-      String jamkeluar = DateFormat("HH:mm").format(jamselesai);
 
       return Fieldditerima(
         judul: "Pengajuan Jadwal Ujian TA",
         tanggal: formatDate,
-        jam: '$jammulai - $jamkeluar',
+        jam: '$jammasuk - $jamkeluar',
         statusAjuan: latestRiwayat.statusAjuan,
         ruangan: latestRiwayat.ruangan,
-        pengujilist: listPengujiTa.map((e) => e.namaPenguji).toList(),
+        pengujilist: latestRiwayat.pengujiList,
       );
     } else if (latestRiwayat is RiwayatSemhasData) {
       DateTime parsedDateTime = DateTime.fromMillisecondsSinceEpoch(
           int.parse(latestRiwayat.jadwalSemhas));
-      DateTime jammasuk = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamMulai));
-      DateTime jamselesai = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(latestRiwayat.jamSelesai));
+      String jammasuk = '';
+      String jamkeluar = '';
+      //? jam masuk
+      if (latestRiwayat.jamMulai.isNotEmpty) {
+        int? jamMulai = int.tryParse(latestRiwayat.jamMulai);
+        if (jamMulai != null) {
+          DateTime parsedMulai = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamMulai));
+          jammasuk = DateFormat("HH:mm").format(parsedMulai);
+        }
+      }
+      //? jam keluar
+      if (latestRiwayat.jamSelesai.isNotEmpty) {
+        int? jamSelesai = int.tryParse(latestRiwayat.jamSelesai);
+        if (jamSelesai != null) {
+          DateTime parsedKeluar = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(latestRiwayat.jamSelesai));
+          jamkeluar = DateFormat("HH:mm").format(parsedKeluar);
+        }
+      }
       String formatDate =
           DateFormat("dd MMMM yyyy", "ID").format(parsedDateTime);
-      String jammulai = DateFormat("HH:mm").format(jammasuk);
-      String jamkeluar = DateFormat("HH:mm").format(jamselesai);
 
       return Fieldditerima(
         judul: "Pengajuan Jadwal Seminar Hasil",
         tanggal: formatDate,
-        jam: '$jammulai - $jamkeluar',
+        jam: '$jammasuk - $jamkeluar',
         statusAjuan: latestRiwayat.statusAjuan,
         ruangan: latestRiwayat.ruangSemhas,
       );
@@ -193,7 +240,95 @@ Widget notification(BuildContext context, RiwayatController riwayatController) {
   }
 
   // Jika tidak ada data terbaru yang ditemukan
+
   return const Center(
     child: Text("Belum Ada Data Terbaru"),
   ); // Atau widget lain yang sesuai dengan kebutuhan Anda
+}
+
+Widget pengajuanJudul(BuildContext context, String formatDate, String status) {
+  return Container(
+    width: MediaQuery.of(context).size.width,
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: SimtaColor.grey),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.2),
+          spreadRadius: 1,
+          blurRadius: 10,
+        ),
+      ],
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Pengajuan Judul Tugas Akhir',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.only(top: 30),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Tanggal Ajuan: ",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        color: SimtaColor.grey2,
+                      ),
+                    ),
+                    Text(
+                      formatDate,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: SimtaColor.birubar,
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Status Ajuan : ",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      color: SimtaColor.grey2,
+                    ),
+                  ),
+                  Text(
+                    status,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w400,
+                        color: status.toLowerCase() == 'diajukan'
+                            ? Colors.orange
+                            : status.toLowerCase() == 'ditolak'
+                                ? Colors.red
+                                : SimtaColor.green,
+                        fontSize: 14),
+                  ),
+                ],
+              ))
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }
